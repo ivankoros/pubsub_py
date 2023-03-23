@@ -7,7 +7,6 @@ import time
 import random
 from selenium.webdriver.support.wait import WebDriverWait
 import re
-
 from dotenv import load_dotenv
 import os
 
