@@ -177,3 +177,4 @@ pyrightconfig.json
 /config.py
 /.idea/.name
 /sub_deal_data.db
+/.idea/dataSources.xml

@@ -1,3 +1,4 @@
+# Selenium
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -8,8 +9,39 @@ import random
 from selenium.webdriver.support.wait import WebDriverWait
 import re
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 
+# SQLalchemy
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, DateTime, CHAR
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# SQLalchemy
+Base = declarative_base()
+
+class SubDeal(Base):
+    __tablename__ = 'sub_deals'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    date = Column(DateTime)
+
+    def __init__(self, name, date):
+        self.name = name
+        self.date = date
+
+    def __repr__(self):
+        return f"Sub: {self.name} Sale date: {self.date}"
+
+engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
+
+
+# Twilio
 load_dotenv()
 
 options = Options()
@@ -56,6 +88,7 @@ driver.execute_script("arguments[0].click();", deals[random.randint(0, len(deals
 
 
 # Find subs on sale function from parent elements
+
 subs_on_sale = []
 pattern = r"(.*Sub)"
 def find_sub_parent(element):
@@ -74,13 +107,16 @@ def find_sub_parent(element):
         if "Sub" in parent.text:
             match = re.search(pattern, parent.text)
             subs_on_sale.append(match.group(1))
+            deal = SubDeal(match.group(1), datetime.now())
+            session.add(deal)
+            session.commit()
             return subs_on_sale
         element = parent
     return subs_on_sale
 
 
 for index, item in enumerate(deals):
-    find_sub_parent(item)
-    print("The " + subs_on_sale[index].lower() + " is on sale!")
+     find_sub_parent(item)
+     print("The " + subs_on_sale[index].lower() + " is on sale!")
 
 driver.quit()
