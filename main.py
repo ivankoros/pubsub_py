@@ -82,6 +82,6 @@ def find_sub_parent(element):
 
 for index, item in enumerate(deals):
     find_sub_parent(item)
-    print("The" + subs_on_sale[index].lower() + " is on sale!")
+    print("The " + subs_on_sale[index].lower() + " is on sale!")
 
 driver.quit()
