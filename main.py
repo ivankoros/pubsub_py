@@ -9,6 +9,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+import os
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -21,7 +22,7 @@ Base = declarative_base()
 class SubDeal(Base):
     __tablename__ = 'sub_deals'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255))
     date = Column(DateTime)
 
@@ -31,6 +32,35 @@ class SubDeal(Base):
 
     def __repr__(self):
         return f"Sub: {self.name} Sale date: {self.date}"
+
+# def initialize_database():
+#     # Create the database
+#
+#     engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
+#     Base.metadata.create_all(engine)
+#
+#     Session = sessionmaker(bind=engine)
+#     session = Session()
+#
+#     return session
+
+def initialize_database():
+    # Update the connection string for MySQL
+    load_dotenv()
+
+    db_user = os.getenv("DB_USER")
+    db_password = os.getenv("DB_PASSWORD")
+    db_host = os.getenv("DB_HOST")
+    db_name = os.getenv("DB_NAME")
+    db_url = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
+
+    engine = create_engine(db_url, echo=True)
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    return session
 
 
 def create_webdriver():
@@ -102,6 +132,7 @@ def find_sub_parent(element, session):
     :return: the list of subs on sale: "Publix Italian Sub"
     """
     pattern = r"(.*Sub)"
+    today = datetime.now().date()
 
     while element is not None:
         parent = element.find_element(By.XPATH, '..')
@@ -109,20 +140,20 @@ def find_sub_parent(element, session):
             match = re.search(pattern, parent.text)
             sub_name = match.group(1)
 
-            datetime_obj = datetime.now()
-            today = datetime_obj.date()  # Get the current date (year-month-day)
+            print(f"Sub name: {sub_name}, Date: {today}")
 
             # If the same sub is on sale on the same date, don't add it to the database
             existing_deal = session.query(SubDeal).filter(
                 SubDeal.name == sub_name,
                 SubDeal.date == today
                 ).first()
+            print(f"existing deal: {existing_deal}")
 
             if not existing_deal:
                 deal = SubDeal(sub_name, today)
                 session.add(deal)
                 session.commit()
-                print(f"The {sub_name.lower()} is on sale!")
+                print(f"The {sub_name.lower()} is newly on sale!")
             else:
                 print(f"The {sub_name.lower()} is a duplicate!")
 
@@ -135,11 +166,7 @@ def main():
     load_dotenv()
 
     # Create the database
-    engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
-    Base.metadata.create_all(engine)
-
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = initialize_database()
 
     # Create the webdriver
     driver = create_webdriver()
