@@ -1,22 +1,18 @@
-# Selenium
+import random
+import re
+import time
+from datetime import datetime
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
-import time
-import random
 from selenium.webdriver.support.wait import WebDriverWait
-import re
-from dotenv import load_dotenv
-from datetime import datetime, date
-import os
+from webdriver_manager.chrome import ChromeDriverManager
 
-# SQSQLAlchemy
-from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, DateTime, CHAR
+from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import cast, Date
 
 # SQSQLAlchemy configuration & setup
 Base = declarative_base()
@@ -37,40 +33,47 @@ class SubDeal(Base):
         return f"Sub: {self.name} Sale date: {self.date}"
 
 
-engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
-Base.metadata.create_all(engine)
+def create_webdriver():
+    """Create a selenium webdriver for the bot to use
 
-Session = sessionmaker(bind=engine)
-session = Session()
+    Returns:
+        webdriver: The selenium webdriver
+    """
+    # Selenium runtime options
+    options = Options()
+    # options.add_argument("--incognito")
+    #options.add_argument("--headless=new")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option("useAutomationExtension", False)
 
-# Load environment variables
-load_dotenv()
+    """ Add options to selenium runtime
+        --headless: Run without opening a window
+        --disable-blink-features=AutomationControlled: Disable the "Chrome is being controlled by automated test software" message
+        --incognito: Run in incognito mode
+        Exclude switches and useAutomationExtension both remove identifiers for selenium being used as an automated test, which chrome doesnt like
+        
+        The options are added to the webdriver.Chrome() function which is passed to the webdriver and executed
 
+    """
 
-# Selenium runtime options
-options = Options()
-# options.add_argument("--incognito")
-options.add_argument("--headless=new")
-options.add_argument("--disable-blink-features=AutomationControlled")
-options.add_experimental_option("excludeSwitches", ["enable-automation"])
-options.add_experimental_option("useAutomationExtension", False)
+    # Download the latest chromium webdriver to mimic Chrome browser
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-""" Add options to selenium runtime
-    --headless: Run without opening a window
-    --disable-blink-features=AutomationControlled: Disable the "Chrome is being controlled by automated test software" message
-    --incognito: Run in incognito mode
-    Exclude switches and useAutomationExtension both remove identifiers for selenium being used as an automated test, which chrome doesnt like
-    
-    The options are added to the webdriver.Chrome() function which is passed to the webdriver and executed
+    return driver
 
-"""
+def find_saving_elements(driver):
+    WebDriverWait(driver, 3)
+    return driver.find_elements(By.CLASS_NAME, "p-text.paragraph-sm.strong.context--default.color--null")
 
-# Download the latest chromium webdriver to mimic Chrome browser
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def scroll_down(driver):
+    time.sleep(random.randint(2, 5))
+    driver.execute_script(f'window.scrollTo(0, {random.randint(700, 1400)})')
 
-publix_sub_link = "https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648"  # Publix deli subs link
+def click_random_deal(driver, deals):
+    time.sleep(random.randint(2, 5))
+    driver.execute_script("arguments[0].click();", deals[random.randint(0, len(deals) - 1)])
 
-driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")  # Also removes the "Chrome is being controlled by automated test software" message
 
 """ Humanize the bot
 
@@ -85,41 +88,8 @@ It randomly click on an element to make it look like the user is clicking on a d
 
 
 """
-# Go to link, wait between 2 and 5 seconds to do anything
-driver.get(publix_sub_link)
-time.sleep(random.randint(2, 5))
 
-# Wait 3 seconds, then find all elements with the classname matching the one that sale deals are in
-wait = WebDriverWait(driver, 3)
-saving_elements_by_class = driver.find_elements(By.CLASS_NAME,
-                                                "p-text.paragraph-sm.strong.context--default.color--null")
-
-# Wait between 2 and 5 seconds, then scroll down the page
-time.sleep(random.randint(2, 5))
-driver.execute_script('window.scrollTo(0, 700)')
-
-# Print the number of elements found by class name
-print(str(len(saving_elements_by_class)) + " elements found by class name")
-
-# Filter found deals by seeing if they contain the word same.
-# A lot of elements found are not deals (just have same classname), so I filter them out
-deals = []
-for each in saving_elements_by_class:
-    if "Save" in each.text:
-        deals.append(each)
-
-# Sleep between 2 and 5 seconds, then scroll down the page
-time.sleep(random.randint(2, 5))
-driver.execute_script('window.scrollTo(0, 1400)')
-
-# execute script to click on the element
-driver.execute_script("arguments[0].click();", deals[random.randint(0, len(deals) - 1)])
-
-# Find the name of the sub on sale by looking through the filtered element's parent text
-subs_on_sale = []
-pattern = r"(.*Sub)"  # This is the regex pattern used below to get the name of the sub
-
-def find_sub_parent(element):
+def find_sub_parent(element, session):
     """Find the sub name of the element that contains the word "Save"
 
     Recursively look up the parent element until the word "Sub" is found
@@ -127,9 +97,11 @@ def find_sub_parent(element):
     So I use regex to get all the words before the word "Sub" which is the name of the sub: "Publix Italian Sub"
     Then I append it to the list
 
+    :param session: the database session
     :param element: the list of elements that contain the word "Save"
     :return: the list of subs on sale: "Publix Italian Sub"
     """
+    pattern = r"(.*Sub)"
 
     while element is not None:
         parent = element.find_element(By.XPATH, '..')
@@ -158,8 +130,41 @@ def find_sub_parent(element):
         element = parent
 
 
-# Loop through the list of elements that contain the word "Save" call the find_sub_parent function on each element
-for item in deals:
-    find_sub_parent(item)
+def main():
 
-driver.quit()
+    load_dotenv()
+
+    # Create the database
+    engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    # Create the webdriver
+    driver = create_webdriver()
+
+    # Get the link to the subs page and go to the webpage
+    publix_sub_link = "https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648"
+    driver.get(publix_sub_link)
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    time.sleep(random.randint(2, 5))
+    scroll_down(driver)
+
+    # Find all the elements that contain the word "Save"
+    saving_elements_by_class = find_saving_elements(driver)
+    print(str(len(saving_elements_by_class)) + " elements found by class name")
+
+    # Filter the list to only include elements that contain the word "Save"
+    deals = [each for each in saving_elements_by_class if "Save" in each.text]
+
+    click_random_deal(driver, deals)
+
+    for item in deals:
+        find_sub_parent(item, session)
+
+    driver.quit()
+
+
+if __name__ == '__main__':
+    main()
