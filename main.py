@@ -43,7 +43,15 @@ def initialize_database():
     I'm also using MySQL because I'll be able to host it on a server much easier with the major cloud providers like AWS and GCP.
     This way, I can run the bot away from my computer and have it dockerized, so it can run on any machine.
 
+    Edit: Looking back at it now, SQLite could've been used to compare time like this:
+
+        from sqlalchemy import func
+        table_db = session.query.filter(func.DATE(SubDeal.date == today)
+
+    However, I am staying with, and still prefer MySQL, for the scalability and access.
+
     :return:
+        Session: The database session object for the database
     """
     load_dotenv()
 
