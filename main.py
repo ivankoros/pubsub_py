@@ -33,19 +33,18 @@ class SubDeal(Base):
     def __repr__(self):
         return f"Sub: {self.name} Sale date: {self.date}"
 
-# def initialize_database():
-#     # Create the database
-#
-#     engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
-#     Base.metadata.create_all(engine)
-#
-#     Session = sessionmaker(bind=engine)
-#     session = Session()
-#
-#     return session
-
 def initialize_database():
-    # Update the connection string for MySQL
+    """Initialize MySQL database
+
+    I'm using a mysql database to store the sub deals over previously using a sqlite database.
+    I'm doing this because SQLite doesn't support datetime comparisons, meaning I cant compare a newly found
+    sub deal to a previously found sub deal to see if it's the same sub deal.
+
+    I'm also using MySQL because I'll be able to host it on a server much easier with the major cloud providers like AWS and GCP.
+    This way, I can run the bot away from my computer and have it dockerized, so it can run on any machine.
+
+    :return:
+    """
     load_dotenv()
 
     db_user = os.getenv("DB_USER")
@@ -137,25 +136,23 @@ def find_sub_parent(element, session):
     while element is not None:
         parent = element.find_element(By.XPATH, '..')
         if "Sub" in parent.text:
-            match = re.search(pattern, parent.text)
+            match = re.search(pattern, parent.text)  # Get the name of the sub: "Publix Italian Sub"
             sub_name = match.group(1)
 
-            print(f"Sub name: {sub_name}, Date: {today}")
-
-            # If the same sub is on sale on the same date, don't add it to the database
+            # Query the database to see if the sub is already in the database at the same date as today
             existing_deal = session.query(SubDeal).filter(
                 SubDeal.name == sub_name,
                 SubDeal.date == today
                 ).first()
-            print(f"existing deal: {existing_deal}")
 
+            # If the same sub is on sale on the same date, don't add it to the database
             if not existing_deal:
                 deal = SubDeal(sub_name, today)
                 session.add(deal)
                 session.commit()
-                print(f"The {sub_name.lower()} is newly on sale!")
+                print(f"The {sub_name.lower()} is newly on sale, adding to database!")
             else:
-                print(f"The {sub_name.lower()} is a duplicate!")
+                print(f"The {sub_name.lower()} is a duplicate sale, not adding!")
 
             return
         element = parent
