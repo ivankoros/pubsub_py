@@ -9,16 +9,18 @@ import random
 from selenium.webdriver.support.wait import WebDriverWait
 import re
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, date
 import os
 
-# SQLalchemy
+# SQSQLAlchemy
 from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, DateTime, CHAR
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import cast, Date
 
-# SQLalchemy
+# SQSQLAlchemy
 Base = declarative_base()
+
 
 class SubDeal(Base):
     __tablename__ = 'sub_deals'
@@ -34,12 +36,12 @@ class SubDeal(Base):
     def __repr__(self):
         return f"Sub: {self.name} Sale date: {self.date}"
 
+
 engine = create_engine('sqlite:///sub_deal_data.db', echo=True)
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
-
 
 # Twilio
 load_dotenv()
@@ -50,7 +52,6 @@ options.add_experimental_option("detach", True)
 options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option("useAutomationExtension", False)
-
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
@@ -86,37 +87,52 @@ driver.execute_script('window.scrollTo(0, 1400)')
 # execute script to click on the element
 driver.execute_script("arguments[0].click();", deals[random.randint(0, len(deals) - 1)])
 
-
 # Find subs on sale function from parent elements
 
 subs_on_sale = []
 pattern = r"(.*Sub)"
+
 def find_sub_parent(element):
     """Find the sub name of the element that contains the word "Save"
 
     Recursively look up the parent element until the word "Sub" is found
     It comes out messy like: "Publix Italian Sub\nGenoa Salami, Tavern Ham, Hot Cappy Ham, Choice of Cheese and Salad..."
-    So I use regex to get the first word before the word "Sub" which is the name of the sub: "Publix Italian Sub"
+    So I use regex to get all the words before the word "Sub" which is the name of the sub: "Publix Italian Sub"
     Then I append it to the list
 
     :param element: the list of elements that contain the word "Save"
     :return: the list of subs on sale: "Publix Italian Sub"
     """
+
     while element is not None:
         parent = element.find_element(By.XPATH, '..')
         if "Sub" in parent.text:
             match = re.search(pattern, parent.text)
-            subs_on_sale.append(match.group(1))
-            deal = SubDeal(match.group(1), datetime.now())
-            session.add(deal)
-            session.commit()
-            return subs_on_sale
+            sub_name = match.group(1)
+
+            datetime_obj = datetime.now()
+            today = datetime_obj.date()  # Get the current date (year-month-day)
+
+            # If the same sub is on sale on the same date, don't add it to the database
+            existing_deal = session.query(SubDeal).filter(
+                SubDeal.name == sub_name,
+                SubDeal.date == today
+                ).first()
+
+            if not existing_deal:
+                deal = SubDeal(sub_name, today)
+                session.add(deal)
+                session.commit()
+                print(f"The {sub_name.lower()} is on sale!")
+            else:
+                print(f"The {sub_name.lower()} is a duplicate!")
+
+            return
         element = parent
-    return subs_on_sale
 
 
-for index, item in enumerate(deals):
-     find_sub_parent(item)
-     print("The " + subs_on_sale[index].lower() + " is on sale!")
+# Loop through the list of elements that contain the word "Save" and find the sub name
+for item in deals:
+    find_sub_parent(item)
 
 driver.quit()
