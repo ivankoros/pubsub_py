@@ -29,10 +29,10 @@ def incoming_sms():
 
         if len(sales) == 1:
             for sale in sales:
-                resp.message("The " + sale.name.lower() + " is on sale today.")
+                resp.message("The " + sale.name.lower() + " is on sale today!")
         elif len(sales) > 1:
 
-            resp.message(f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]} are on sale today")
+            resp.message(f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]} are on sale today!")
         else:
             resp.message(TextResponses().get_response("no_sale"))
     else:

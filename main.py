@@ -94,6 +94,7 @@ def create_webdriver():
 
     """
 
+
     # Download the latest chromium webdriver to mimic Chrome browser
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
@@ -125,7 +126,7 @@ It randomly click on an element to make it look like the user is clicking on a d
 
 
 """
-
+# TODO instead of doing this, have selenium click the "On sale" checkbox and scrape all the elements there
 def find_sub_parent(element, session):
     """Find the sub name of the element that contains the word "Save"
 
