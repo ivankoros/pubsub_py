@@ -129,7 +129,7 @@ It randomly click on an element to make it look like the user is clicking on a d
 def find_sub_parent(element, session):
     """Find the sub name of the element that contains the word "Save"
 
-    Recursively look up the parent element until the word "Sub" is found
+    Recursively look up the HTML parent element of the sale items until the word "Sub" is found
     It comes out messy like: "Publix Italian Sub\nGenoa Salami, Tavern Ham, Hot Cappy Ham, Choice of Cheese and Salad..."
     So I use regex to get all the words before the word "Sub" which is the name of the sub: "Publix Italian Sub"
     Then I append it to the list
