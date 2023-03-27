@@ -7,6 +7,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from main import SubDeal
 from main import initialize_database
+from text_responses import TextResponses
+import random
 
 Base = declarative_base()
 
@@ -20,9 +22,8 @@ def incoming_sms():
 
     resp = MessagingResponse()
 
-    if "sale" in body.lower():
-        today = datetime.now().date()
-        print(today)
+    if body.lower() in TextResponses().get_response("sale_prompt"):
+        today = datetime.today().date()
 
         sales = session.query(SubDeal).filter(SubDeal.date == today).all()
 
@@ -33,10 +34,10 @@ def incoming_sms():
 
             resp.message(f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]} are on sale today")
         else:
-            resp.message("No subs on sale today.")
+            resp.message(TextResponses().get_response("no_sale"))
     else:
         resp.message("Sorry, I don't understand.")
-        resp.message(f"Say 'sale' to see what subs are on sale today.")
+        resp.message(TextResponses().get_response("help"))
 
     return Response(str(resp), mimetype="application/xml")
 
