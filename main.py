@@ -178,7 +178,8 @@ def main():
     driver = create_webdriver()
 
     # Get the link to the subs page and go to the webpage
-    publix_sub_link = "https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648"
+    #publix_sub_link = "https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648"
+    publix_sub_link = 'https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648?facet=onSale%3A%3Atrue'
     driver.get(publix_sub_link)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(random.randint(2, 5))
