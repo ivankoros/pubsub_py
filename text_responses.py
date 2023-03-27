@@ -1,4 +1,5 @@
 # These are the text responses that I'm using in a class
+import random
 
 class TextResponses:
     def __init__(self):
@@ -18,4 +19,7 @@ class TextResponses:
         }
 
     def get_response(self, response):
-        return self.text_responses[response]
+        if response == "help":
+            return random.choice(self.text_responses[response])
+        else:
+            return self.text_responses[response]
