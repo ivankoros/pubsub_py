@@ -78,12 +78,17 @@ def create_webdriver():
     """
     # Selenium runtime options
     options = Options()
-    # options.add_argument("--incognito")
+    options.add_argument("--incognito")
     #options.add_argument("--headless=new")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
-
+    options.set_capability("acceptInsecureCerts", True)
+    options.set_capability("acceptSslCerts", True)
+    options.set_capability("unhandledPromptBehavior", "accept")
+    prefs = {"profile.default_content_setting_values.geolocation": 2}
+    options.add_experimental_option("prefs", prefs)
+    # one of the accept terms paths: /html/body/div[1]/div/div/div[3]/div/div/button
     """ Add options to selenium runtime
         --headless: Run without opening a window
         --disable-blink-features=AutomationControlled: Disable the "Chrome is being controlled by automated test software" message
