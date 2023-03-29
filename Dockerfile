@@ -1,5 +1,5 @@
 # Set the base image to use for subsequent instructions
-FROM python:3.9-slim-buster
+FROM python:3.9
 
 # Set the working directory for the application
 WORKDIR /app
