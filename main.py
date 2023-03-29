@@ -108,7 +108,7 @@ def create_webdriver():
 
 def find_saving_elements(driver):
 
-    time.sleep(5)  # An implicit wait cannot be used here because the page is dynamically loaded and the elements change as the page loads
+    time.sleep(10)  # An implicit wait cannot be used here because the page is dynamically loaded and the elements change as the page loads
     sale_elements = driver.find_elements(By.CLASS_NAME, "p-text.paragraph-sm.strong.context--default.color--null")
 
     return sale_elements
