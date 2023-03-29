@@ -1,7 +1,4 @@
-from main import initialize_database
-from main import create_webdriver
-from main import click_random_deal
-from main import scroll_down
+from app.main import create_webdriver
 import random
 import time
 from selenium.webdriver.common.by import By as BY

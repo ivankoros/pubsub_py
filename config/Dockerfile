@@ -1,10 +1,10 @@
 # Set the base image to use for subsequent instructions
 FROM python:3.9
 
-ADD . .
+ADD .. .
 
 # Copy the Python requirements file to the container
-COPY ./requirements.txt /code/requirements.txt
+COPY ../requirements.txt /code/requirements.txt
 
 # Install the Python dependencies
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt

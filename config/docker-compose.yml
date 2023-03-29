@@ -9,7 +9,7 @@ services:
 
   app:
     build:
-      context: .
+      context: ..
     volumes:
       - ./app:/app
     command: sh -c "python3 main.py"
