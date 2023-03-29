@@ -10,25 +10,42 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 def order_sub():
     driver = create_webdriver()
-    useragentarray = [
+
+    # These are two different identifications for the webbrowser to think it's a different browser
+    user_agent_array = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
     ]
 
-    for i in range(len(useragentarray)):
+    # This reloads the page with per user agent
+    # This is extremely important, many times, the first or even second user agent will be blocked (randomly),
+    # so they're needed to change the identity of the browser to successfully load in the page (the hardest part)
+
+    for i in range(len(user_agent_array)):
         # Setting user agent iteratively as Chrome 108 and 107
-        driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": useragentarray[i]})
+        driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
         print(driver.execute_script("return navigator.userAgent;"))
         driver.get("https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648")
 
+    # This sets the webdriver to undefined, so that the browser thinks it's not a webdriver
+    # Again, changing identity to get past initial automation block
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    time.sleep(random.randint(2, 3))
+    time.sleep(random.randint(2, 3))  # Sleep for a couple of seconds before doing anything, important to not get blocked
+
+    # Location chooser
     driver.find_element(BY.XPATH, '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input').send_keys('st johns town center')
     #press enter
     driver.find_element(BY.XPATH, '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input').send_keys(u'\ue007')
     time.sleep(2)
     # click on the first element with "Choose store" in it
     driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
+
+    """Choosing store location
+    
+    This code above is needed because we initially block our location services.
+    The input for choosing the location pops up automatically, so we 
+    """
+
 
     build_sub_button = '//*[@id="main"]/div[2]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div[4]/div/div/a'
     driver.implicitly_wait(10)
