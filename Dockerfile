@@ -1,17 +1,13 @@
 # Set the base image to use for subsequent instructions
 FROM python:3.9
 
-# Set the working directory for the application
-WORKDIR /app
+ADD . .
 
 # Copy the Python requirements file to the container
-COPY requirements.txt .
+COPY ./requirements.txt /code/requirements.txt
 
 # Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code to the container
-COPY . .
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # Set environment variables for the app
 ENV PYTHONUNBUFFERED=1

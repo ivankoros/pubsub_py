@@ -54,7 +54,7 @@ def initialize_database():
     :return:
         Session: The database session object for the database
     """
-    load_dotenv()
+    load_dotenv(override=True)
 
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
@@ -107,8 +107,11 @@ def create_webdriver():
     return driver
 
 def find_saving_elements(driver):
-    WebDriverWait(driver, 3)
-    return driver.find_elements(By.CLASS_NAME, "p-text.paragraph-sm.strong.context--default.color--null")
+
+    time.sleep(5)  # An implicit wait cannot be used here because the page is dynamically loaded and the elements change as the page loads
+    sale_elements = driver.find_elements(By.CLASS_NAME, "p-text.paragraph-sm.strong.context--default.color--null")
+
+    return sale_elements
 
 def scroll_down(driver):
     time.sleep(random.randint(2, 5))
@@ -224,8 +227,6 @@ def main():
         EC.element_to_be_clickable((By.XPATH, location_address))
     )
     correct_store_choose_option.click()
-
-    scroll_down(driver)
 
     # Find all the elements that contain the word "Save"
     saving_elements_by_class = find_saving_elements(driver)
