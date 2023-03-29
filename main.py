@@ -14,6 +14,7 @@ import os
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from selenium.webdriver.support import expected_conditions as EC
 
 # SQSQLAlchemy configuration & setup
 Base = declarative_base()
@@ -182,12 +183,48 @@ def main():
     # Create the webdriver
     driver = create_webdriver()
 
+    user_agent_array = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+    ]
+
+    # This reloads the page with per user agent
+    # This is extremely important, many times, the first or even second user agent will be blocked (randomly),
+    # so they're needed to change the identity of the browser to successfully load in the page (the hardest part)
+
+    for i in range(len(user_agent_array)):
+        # Setting user agent iteratively as Chrome 108 and 107
+        driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
+        print(driver.execute_script("return navigator.userAgent;"))
+        driver.get("https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648?facet=onSale%3A%3Atrue")
+
     # Get the link to the subs page and go to the webpage
-    #publix_sub_link = "https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648"
-    publix_sub_link = 'https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648?facet=onSale%3A%3Atrue'
-    driver.get(publix_sub_link)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(random.randint(2, 5))
+
+    try:
+        accept_button = driver.find_element(By.XPATH,
+                                            '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]')
+        wait = WebDriverWait(driver, 3)
+        if wait.until(EC.element_to_be_clickable((By.XPATH,
+                                                  '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]'))):
+            accept_button.click()
+    except:
+        pass
+
+    location_selection_textbox_path = '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input'
+    address = 'St. John\'s Town Center'  # This is the address of the store we want to go to
+    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(address)
+    #
+    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(u'\ue007')  # Press enter
+
+    location_address = f'//button[@aria-label="Choose {address} as your store"]'
+
+    correct_store_choose_option = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, location_address))
+    )
+    correct_store_choose_option.click()
+
     scroll_down(driver)
 
     # Find all the elements that contain the word "Save"
@@ -196,8 +233,6 @@ def main():
 
     # Filter the list to only include elements that contain the word "Save"
     deals = [each for each in saving_elements_by_class if "Save" in each.text]
-
-    click_random_deal(driver, deals)
 
     for item in deals:
         find_sub_parent(item, session)
