@@ -32,6 +32,16 @@ def order_sub():
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(random.randint(2, 3))  # Sleep for a couple of seconds before doing anything, important to not get blocked
 
+    try:
+        accept_button = driver.find_element(BY.XPATH,
+                                            '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]')
+        wait = WebDriverWait(driver, 10)
+        if wait.until(EC.element_to_be_clickable((BY.XPATH,
+                                                  '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]'))):
+            accept_button.click()
+    except:
+        pass
+
     # Location chooser
     # click on the text box and type in the location
 
