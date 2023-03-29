@@ -31,7 +31,7 @@ def order_sub():
     driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     build_sub_button = '//*[@id="main"]/div[2]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div[4]/div/div/a'
-    driver.implicitly_wait(5)
+    driver.implicitly_wait(10)
     driver.find_element(BY.XPATH, build_sub_button).click()
 
     driver.implicitly_wait(5)
@@ -74,15 +74,14 @@ def order_sub():
     driver.find_element(BY.XPATH, next_button).click()
 
     # Define data (will be defined per request)
-    date_of_order = "Tuesday, March 28, 2023"
+
 
     # Define date picker xpath and click on it
-    pickup_date_button = f'//button[@data-day="{date_of_order}"]'
     driver.implicitly_wait(5)
     driver.find_element(BY.CSS_SELECTOR, '.datepicker-activate').click()
-
+    time.sleep(2)
     # Define specific date xpath and click on it
-    pickup_time = "12:00 PM"
+    date_of_order = "Wednesday, March 29, 2023"
     driver.implicitly_wait(5)
     driver.find_element(BY.XPATH, f'//button[@aria-label="{date_of_order}"]').click()
 
@@ -93,13 +92,14 @@ def order_sub():
     )
     dropdown.click()
 
-    options = WebDriverWait(driver, 10).until(
-        EC.visibility_of_all_elements_located((BY.CSS_SELECTOR, "#input_pickupTime93 option"))
-    )
-    for option in options:
-        if pickup_time in option.text:
-            option.click()
-            break
+    pickup_time = "2023-03-29T09:45:00"
+    driver.find_element(BY.XPATH, f'//option[@value="{pickup_time}"]').click()
+
+    next_button = '//*[@id="content_26"]/form/div[3]/div/button'
+    driver.implicitly_wait(5)
+    driver.find_element(BY.XPATH, next_button).click()
+
+    driver.find_element(BY.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
 
     time.sleep(1000)
 
