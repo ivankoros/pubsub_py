@@ -3,7 +3,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from functions import create_webdriver
+from resources import create_webdriver
 
 def order_sub():
     driver = create_webdriver()

@@ -7,9 +7,9 @@ import random
 
 from sqlalchemy.orm import declarative_base
 from selenium.webdriver.support import expected_conditions as EC
-from functions import SubDeal
-from functions import initialize_database
-from functions import create_webdriver
+from helpers import SubDeal
+from helpers import initialize_database
+from helpers import create_webdriver
 
 # SQSQLAlchemy configuration & setup
 Base = declarative_base()
