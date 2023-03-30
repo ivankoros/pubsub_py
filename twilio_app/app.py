@@ -1,20 +1,19 @@
-from flask import Flask, Response, request
-from twilio.twiml.messaging_response import MessagingResponse
 from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
-from functions import SubDeal
-from functions import initialize_database
+from flask import Flask, Response, request
+from sqlalchemy.ext.declarative import declarative_base
+from twilio.twiml.messaging_response import MessagingResponse
+
+from resources import SubDeal
+from resources import initialize_database
 from text_responses import TextResponses
-import random
 
 Base = declarative_base()
 
 session = initialize_database()
 
 app = Flask(__name__)
+
 
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
@@ -32,7 +31,8 @@ def incoming_sms():
                 resp.message("The " + sale.name.lower() + " is on sale today!")
         elif len(sales) > 1:
 
-            resp.message(f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]} are on sale today!")
+            resp.message(f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}"
+                         f" are on sale today!")
         else:
             resp.message(TextResponses().get_response("no_sale"))
     else:
