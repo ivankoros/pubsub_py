@@ -5,8 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from main import SubDeal
-from main import initialize_database
+from functions import SubDeal
+from functions import initialize_database
 from text_responses import TextResponses
 import random
 
