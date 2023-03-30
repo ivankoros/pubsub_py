@@ -1,22 +1,24 @@
+import random
 import re
 import time
 from datetime import datetime
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-import random
 
-from sqlalchemy.orm import declarative_base
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from helpers import SubDeal
-from helpers import initialize_database
-from helpers import create_webdriver
+from selenium.webdriver.support.wait import WebDriverWait
+from sqlalchemy.orm import declarative_base
+
+from resources import SubDeal
+from resources import create_webdriver
+from resources import initialize_database
 
 # SQSQLAlchemy configuration & setup
 Base = declarative_base()
 
-def find_saving_elements(driver):
 
-    time.sleep(10)  # An implicit wait cannot be used here because the page is dynamically loaded and the elements change as the page loads
+def find_saving_elements(driver):
+    time.sleep(
+        10)  # An implicit wait cannot be used here because the page is dynamically loaded and the elements change as the page loads
     sale_elements = driver.find_elements(By.CLASS_NAME, "p-text.paragraph-sm.strong.context--default.color--null")
 
     return sale_elements
@@ -35,7 +37,7 @@ It randomly click on an element to make it look like the user is clicking on a d
 
 
 """
-# TODO instead of doing this, have selenium click the "On sale" checkbox and scrape all the elements there
+
 def find_sub_parent(element, session):
     """Find the sub name of the element that contains the word "Save"
 
@@ -114,18 +116,8 @@ def main():
     except:
         pass
 
-    location_selection_textbox_path = '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input'
-    address = 'St. John\'s Town Center'  # This is the address of the store we want to go to
-    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(address)
-    #
-    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(u'\ue007')  # Press enter
-
-    location_address = f'//button[@aria-label="Choose {address} as your store"]'
-
-    correct_store_choose_option = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, location_address))
-    )
-    correct_store_choose_option.click()
+    from helpers import webdriver_location_input
+    webdriver_location_input(driver, 'St. John\'s Town Center')
 
     # Find all the elements that contain the word "Save"
     saving_elements_by_class = find_saving_elements(driver)
