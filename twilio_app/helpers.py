@@ -1,5 +1,6 @@
 import googlemaps
 import random
+import requests
 import os
 from dotenv import load_dotenv
 
@@ -24,10 +25,19 @@ class TextResponses:
     def get_response(self, response):
         return random.choice(self.text_responses[response])
 
-def find_nearest_stores(location, keyword="Publix"):
 
+
+def find_nearest_stores(location, keyword="Publix", result_count=3):
     load_dotenv()
-    gmaps = googlemaps.Client(key=os.getenv("GOOGLE_MAPS_API_KEY"))
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 
-    result = gmaps.places_nearby(location=location, radius=10000, keyword=keyword)
-    return result['results'][:3]
+    url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location['lat']}%2C{location['lng']}&radius=10000&type=supermarket&keyword={keyword}&key={api_key}"
+
+    payload = {}
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    response_data = response.json()
+
+    return response_data['results'][:result_count]
+
