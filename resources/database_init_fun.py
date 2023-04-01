@@ -15,13 +15,25 @@ class SubDeal(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255))
     date = Column(DateTime)
+    location = Column(String(255))
 
-    def __init__(self, name, date):
+    def __init__(self, name, date, location):
         self.name = name
         self.date = date
+        self.location = location
 
-    def __repr__(self):
-        return f"Sub: {self.name} Sale date: {self.date}"
+class Users(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    phone_number = Column(String(255))
+    name = Column(String(255))
+    selected_store_address = Column(String(255))
+
+    def __init__(self, phone_number, name, selected_store_address):
+        self.phone_number = phone_number
+        self.name = name
+        self.selected_store_address = selected_store_address
 
 def initialize_database():
     """Initialize MySQL database

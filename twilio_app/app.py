@@ -1,18 +1,21 @@
 from datetime import datetime
-
 from flask import Flask, Response, request
-from sqlalchemy.ext.declarative import declarative_base
 from twilio.twiml.messaging_response import MessagingResponse
 
 from resources import SubDeal
 from resources import initialize_database
 from text_responses import TextResponses
 
-Base = declarative_base()
-
 session = initialize_database()
 
 app = Flask(__name__)
+
+class SubRequest:
+    def __init__(self, body):
+        self.body = body
+
+    def sub_name(self):
+        return self.body.split(" ")[1].lower()
 
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -23,14 +26,12 @@ def incoming_sms():
 
     if body.lower() in TextResponses().get_response("sale_prompt"):
         today = datetime.today().date()
-
         sales = session.query(SubDeal).filter(SubDeal.date == today).all()
 
         if len(sales) == 1:
             for sale in sales:
                 resp.message("The " + sale.name.lower() + " is on sale today!")
         elif len(sales) > 1:
-
             resp.message(f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}"
                          f" are on sale today!")
         else:

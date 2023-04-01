@@ -1,3 +1,4 @@
 from resources.webdriver_init_fun import create_webdriver
 from resources.database_init_fun import initialize_database
 from resources.database_init_fun import SubDeal
+from resources.database_init_fun import Users
