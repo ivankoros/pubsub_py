@@ -5,7 +5,9 @@ from twilio.twiml.messaging_response import MessagingResponse
 from resources import SubDeal
 from resources import Users
 from resources import initialize_database
-from helpers import TextResponses
+from twilio_app import TextResponses
+from twilio_app import find_nearest_stores
+import googlemaps
 
 session = initialize_database()
 
@@ -41,12 +43,15 @@ def incoming_sms():
         user.name = body
         session.commit()
         resp.message(f"Thanks, {user.name}! You are now registered with Pubsub Py!")
-        resp.message(TextResponses().get_response("help"))
+        resp.message("Lets find your local Publix. Give me a street name or general address to"
+                     "help me locate it.")
         return Response(str(resp), mimetype="application/xml")
 
     if user.selected_store_address is None:
-        resp.message("You haven't selected a store yet!")
-
+        gmaps = googlemaps.Client(key='YOUR_API_KEY')
+        found_stores = find_nearest_stores(body)
+        resp.message(found_stores[0]['vicinity'])
+        return Response(str(resp), mimetype="application/xml")
 
     if body.lower() in TextResponses().get_response("sale_prompt"):
         today = datetime.today().date()
