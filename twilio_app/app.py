@@ -5,7 +5,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from resources import SubDeal
 from resources import Users
 from resources import initialize_database
-from text_responses import TextResponses
+from helpers import TextResponses
 
 session = initialize_database()
 
@@ -33,7 +33,7 @@ def incoming_sms():
         session.add(user)
         session.commit()
 
-        resp.message("Welcome to Sub Deals!")
+        resp.message("Welcome to Pubsub Py!")
         resp.message("What's your name?")
         return Response(str(resp), mimetype="application/xml")
 
@@ -43,6 +43,10 @@ def incoming_sms():
         resp.message(f"Thanks, {user.name}! You are now registered with Pubsub Py!")
         resp.message(TextResponses().get_response("help"))
         return Response(str(resp), mimetype="application/xml")
+
+    if user.selected_store_address is None:
+        resp.message("You haven't selected a store yet!")
+
 
     if body.lower() in TextResponses().get_response("sale_prompt"):
         today = datetime.today().date()
