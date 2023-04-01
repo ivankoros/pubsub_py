@@ -19,7 +19,4 @@ class TextResponses:
         }
 
     def get_response(self, response):
-        if response == "help":
-            return random.choice(self.text_responses[response])
-        else:
-            return self.text_responses[response]
+        return random.choice(self.text_responses[response])
