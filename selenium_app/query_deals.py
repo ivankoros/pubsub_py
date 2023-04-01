@@ -38,7 +38,7 @@ It randomly click on an element to make it look like the user is clicking on a d
 
 """
 
-def find_sub_parent(element, session):
+def find_sub_parent(element, session, location):
     """Find the sub name of the element that contains the word "Save"
 
     Recursively look up the HTML parent element of the sale items until the word "Sub" is found
@@ -48,6 +48,7 @@ def find_sub_parent(element, session):
 
     :param session: the database session
     :param element: the list of elements that contain the word "Save"
+    :param location: the location of the store: "St. Johns Town Center"
     :return: the list of subs on sale: "Publix Italian Sub"
     """
 
@@ -68,7 +69,7 @@ def find_sub_parent(element, session):
 
             # If the same sub is on sale on the same date, don't add it to the database
             if not existing_deal:
-                deal = SubDeal(sub_name, today)
+                deal = SubDeal(sub_name, today, location)
                 session.add(deal)
                 session.commit()
                 print(f"The {sub_name.lower()} is newly on sale, adding to database!")
@@ -117,7 +118,9 @@ def main():
         pass
 
     from helpers import webdriver_location_input
-    webdriver_location_input(driver, 'St. John\'s Town Center')
+
+    location = 'St. John\'s Town Center'
+    webdriver_location_input(driver, location)
 
     # Find all the elements that contain the word "Save"
     saving_elements_by_class = find_saving_elements(driver)
@@ -127,7 +130,7 @@ def main():
     deals = [each for each in saving_elements_by_class if "Save" in each.text]
 
     for item in deals:
-        find_sub_parent(item, session)
+        find_sub_parent(item, session, location)
 
     driver.quit()
 

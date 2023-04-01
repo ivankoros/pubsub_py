@@ -46,7 +46,8 @@ def order_sub():
     # click on the text box and type in the location
     from helpers import webdriver_location_input
 
-    webdriver_location_input(driver, 'St. John\'s Town Center')
+    location = "St. John\'s Town Center"
+    webdriver_location_input(driver, location)
 
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
