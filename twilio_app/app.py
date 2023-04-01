@@ -48,7 +48,6 @@ def incoming_sms():
         return Response(str(resp), mimetype="application/xml")
 
     if user.selected_store_address is None:
-        gmaps = googlemaps.Client(key='YOUR_API_KEY')
         found_stores = find_nearest_stores(body)
         resp.message(found_stores[0]['vicinity'])
         return Response(str(resp), mimetype="application/xml")
