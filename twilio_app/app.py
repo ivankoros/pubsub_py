@@ -3,6 +3,7 @@ from flask import Flask, Response, request
 from twilio.twiml.messaging_response import MessagingResponse
 
 from resources import SubDeal
+from resources import Users
 from resources import initialize_database
 from text_responses import TextResponses
 
@@ -23,6 +24,25 @@ def incoming_sms():
     body = request.values.get("Body", "")
 
     resp = MessagingResponse()
+
+    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
+    if not user:
+        user = Users(phone_number=request.values.get("From"),
+                     name=None,
+                     selected_store_address=None)
+        session.add(user)
+        session.commit()
+
+        resp.message("Welcome to Sub Deals!")
+        resp.message("What's your name?")
+        return Response(str(resp), mimetype="application/xml")
+
+    if user.name is None:
+        user.name = body
+        session.commit()
+        resp.message(f"Thanks, {user.name}! You are now registered with Pubsub Py!")
+        resp.message(TextResponses().get_response("help"))
+        return Response(str(resp), mimetype="application/xml")
 
     if body.lower() in TextResponses().get_response("sale_prompt"):
         today = datetime.today().date()
