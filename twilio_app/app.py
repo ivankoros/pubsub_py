@@ -52,21 +52,17 @@ def get_sale_action(body, session, *args):
     sales = session.query(SubDeal).filter(SubDeal.date == today).all()
 
     # If there is one sale, return the name of the sub
-    if len(sales) == 1:
-        message = "The " + sales[0].name.lower() + " is on sale today!"
-
-    # If there are multiple sales, return the names of the subs with commas
-    elif len(sales) > 1:
-        message = f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}" \
-                  f" are on sale today!"
-
-    # If there are no sales, return the no sale message
-    else:
-        message = TextResponses().get_response("no_sale")
+    match len(sales):
+        case 1:
+            message = "The " + sales[0].name.lower() + " is on sale today!"
+        case 0:
+            message = TextResponses().get_response("no_sale")
+        case _:
+            message = f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}" \
+                        f" are on sale today!"
 
     # Go to the default state
     return 'default', message
-
 
 def default_action(*args):
     # If the user input is recognized, initialize the default state
@@ -123,7 +119,7 @@ state_info = {
         'next_states': ['get_sale']
     },
     'get_sale': {
-        'text_response': TextResponses().get_response("get_sale"),
+        'text_response': TextResponses().get_response("help"),
         'action': get_sale_action,
         'next_states': ['default']
     },
