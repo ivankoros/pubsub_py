@@ -46,7 +46,7 @@ def get_store_location_action(body, session, user):
     session.commit()
     return 'get_sale', state_info['get_sale']['text_response']
 
-def get_sale_action(session, *args):
+def get_sale_action(body, session, *args):
     # Check if there are any sales today and return the corresponding message
     today = datetime.today().date()
     sales = session.query(SubDeal).filter(SubDeal.date == today).all()
@@ -96,6 +96,7 @@ def incoming_sms():
     match next_state:
         case 'get_name':
             resp.message(f"Hey, welcome to Pubsub Py!")
+            resp.message(message)
         case 'get_store_location':
             resp.message(f"Hey, {user.name}!")
             resp.message(message)
