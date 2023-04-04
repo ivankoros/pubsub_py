@@ -28,7 +28,7 @@ def get_user(session):
                         state=user.state)
     return user
 
-def start_action(session):
+def start_action(body, session):
     # Initialize the user in the database and prompt for their name
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
     if not user:
@@ -43,24 +43,24 @@ def start_action(session):
         return 'get_store_location', states['get_store_location']
 
 
-def get_name_action(user_input, session):
+def get_name_action(body, session):
     # Get the user's name and save it to the database
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
-    user.name = user_input
+    user.name = body
     session.commit()
     return 'get_store_location', states['get_store_location']
 
 
-def get_store_location_action(user_input, session):
+def get_store_location_action(body, session):
     # Find the nearest store based on the user's input and set it in the database
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
     if user.selected_store_address is None:
-        user.selected_store_address = user_input
+        user.selected_store_address = body
         session.commit()
     return 'get_sale', states['get_sale']
 
 
-def get_sale_action(user_input, session):
+def get_sale_action(body, session):
     # Check if there are any sales today and return the corresponding message
     today = datetime.today().date()
     sales = session.query(SubDeal).filter(SubDeal.date == today).all()
@@ -102,9 +102,11 @@ def incoming_sms():
     and returns their info as a class, or creates a new user in the database and returns 
     their info as a class.
     """
-    user = get_user(session)
+    user = get_user(session)  # This is a class with attributes: phone_number, name, selected_store_address, state
 
+    # Get the current state of the user
     current_user_state = user.state
+
     # Get the action corresponding to the user's current state
     action = state_machine[current_user_state]['action']
     """
