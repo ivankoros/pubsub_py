@@ -7,18 +7,18 @@ from resources import Users
 from resources import initialize_database
 from twilio_app import TextResponses
 from twilio_app import find_nearest_stores
-import googlemaps
 
 session = initialize_database()
 
 app = Flask(__name__)
 
-class SubRequest:
+class IncomingTest:
     def __init__(self, body):
         self.body = body
 
     def sub_name(self):
-        return self.body.split(" ")[1].lower()
+        return self.body
+
 
 
 @app.route("/sms", methods=['GET', 'POST'])
