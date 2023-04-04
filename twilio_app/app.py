@@ -28,7 +28,7 @@ def get_user(session):
     return user
 
 
-def start_action(body, session):
+def start_action():
     # Initialize the user in the database and prompt for their name
 
     return 'get_name', states['get_name']
@@ -106,17 +106,38 @@ def incoming_sms():
         - Found in the state_machine dictionary below
     """
 
-    # Find the user's input (the "body" of their text message)
-    body = request.values.get("Body", "")
-
-    # What I'm doing here is using the action state as a function,
-    # with inputs of the user's input and the database session
-    next_state, message = action(body, session, user)
-    user.state = next_state
-    session.commit()  # Commit the user's new state to the database
+    match current_user_state:
+        case 'start':
+            body = request.values.get("Body", "")
+            next_state, message = action()
+            user.state = next_state
+            session.commit()
+        case 'get_name':
+            body = request.values.get("Body", "")
+            next_state, message = action(body, session, user)
+            user.state = next_state
+            session.commit()
+        case 'get_store_location':
+            body = request.values.get("Body", "")
+            next_state, message = action(body, session, user)
+            user.state = next_state
+            session.commit()
+        case 'get_sale':
+            body = request.values.get("Body", "")
+            next_state, message = action(body, session, user)
+            user.state = next_state
+            session.commit()
+        case 'default':
+            body = request.values.get("Body", "")
+            next_state, message = action(body, session, user)
+            user.state = next_state
+            session.commit()
+        case _:
+            message = "If you see this it means I really messed up"
 
     # Send the response message
     resp = MessagingResponse()
+    assert isinstance(message, object)
     resp.message(message)
     return Response(str(resp), mimetype="application/xml")
 
