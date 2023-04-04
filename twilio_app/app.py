@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from flask import Flask, Response, request
 from twilio.twiml.messaging_response import MessagingResponse
@@ -92,9 +93,11 @@ def incoming_sms():
     match next_state:
         case 'get_name':
             resp.message(f"Hey, welcome to Pubsub Py!")
+            time.sleep(1)
             resp.message(message)
         case 'get_store_location':
             resp.message(f"Hey, {user.name}!")
+            time.sleep(1)
             resp.message(message)
         case _:
             resp.message(message)
