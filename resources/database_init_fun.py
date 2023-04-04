@@ -29,12 +29,14 @@ class Users(Base):
     phone_number = Column(String(255))
     name = Column(String(255))
     selected_store_address = Column(String(255))
+    state = Column(String(45),
+                   default='start')
 
-    def __init__(self, phone_number, name, selected_store_address):
+    def __init__(self, phone_number, name, selected_store_address, state):
         self.phone_number = phone_number
         self.name = name
         self.selected_store_address = selected_store_address
-
+        self.state = state
 def initialize_database():
     """Initialize MySQL database
 
@@ -55,7 +57,7 @@ def initialize_database():
     :return:
         Session: The database session object for the database
     """
-    load_dotenv(override=True, dotenv_path="../config/.env")
+    load_dotenv(override=True, dotenv_path='C:\\Users\\Ivan Korostenskij\\Desktop\\Python\\pubsub_py\\config\\.env')
 
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
