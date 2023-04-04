@@ -27,6 +27,10 @@ class TextResponses:
 
 
 
+# This is the function that I'm trying to test that takes in the geolocation
+# and returns the nearest stores, but I'm not sure how to get the geolocation both
+# accurately and naturally (i.e. I don't want to ask for their address + zip code +
+# city + state, I just want to ask for a nearby street name or general address)
 def find_nearest_stores(location, keyword="Publix", result_count=3):
     load_dotenv()
     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
