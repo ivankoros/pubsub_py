@@ -11,22 +11,17 @@ app = Flask(__name__)
 
 
 # Find/initialize the user
-def get_user(session, *args):
-    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
+def get_user(session):
+    phone_number = request.values.get("From")
+    user = session.query(Users).filter(Users.phone_number == phone_number).first()
     if not user:
-        user = Users(phone_number=request.values.get("From"),
+        user = Users(phone_number=phone_number,
                      name=None,
                      selected_store_address=None,
                      state='start')
         session.add(user)
         session.commit()
-    else:
-        user = Users(phone_number=request.values.get("From"),
-                     name=user.name,
-                     selected_store_address=user.selected_store_address,
-                     state=user.state)
     return user
-
 
 def start_action(*args):
     # Switches the user to the get_name state automatically
