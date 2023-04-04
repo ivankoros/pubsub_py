@@ -8,6 +8,16 @@ from dotenv import load_dotenv
 class TextResponses:
     def __init__(self):
         self.text_responses = {
+            "start": ["Welcome to Sub Deals!.",
+                      "Welcome to Sub Deals!."],
+            "get_name": ["What's your name?",
+                         "What should I call you?"],
+            "get_store_location": ["What's your address?",
+                                   "Let me know your general location so I can find the nearest store."],
+            "get_sale": ["What's on sale today?",
+                         "What subs are on sale today?"],
+            "default": ["You're in the default state",
+                        "You're in the default state"],
             "help": ["Ask me 'any deals today?' to see what subs are on sale today.",
                      "Ask 'what's on sale' to see what on sale today.",
                      "Ask me what's on sale right now to get today's sub deals"],
@@ -45,3 +55,15 @@ def find_nearest_stores(location, keyword="Publix", result_count=3):
 
     return response_data['results'][:result_count]
 
+
+# Text cleaning function for NLP input
+def clean_text(self):
+    text = self.text
+
+    # Lowercase
+    text = text.lower()
+
+    # Remove unicode
+    text = text.encode("ascii", "ignore").decode()
+
+    pass
