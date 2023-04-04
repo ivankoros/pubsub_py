@@ -32,3 +32,37 @@ These instructions will guide you through setting up Pubsub Py on your local mac
 git clone https://github.com/yourusername/pubsub_py.git
 cd pubsub_py
 ```
+
+2. Create a virtual environment and activate it:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+
+3. Install the required packages:
+```python
+pip install -r requirements.txt
+```
+
+4. Set up your environment variables:
+```bash
+export TWILIO_ACCOUNT_SID=your_account_sid
+export TWILIO_AUTH_TOKEN=your_auth_token
+export TWILIO_PHONE_NUMBER=your_twilio_phone_number
+export YOUR_PHONE_NUMBER=your_phone_number
+```
+
+
+## Usage
+
+Once everything is set up, send a text message to the Twilio phone number with your sandwich preferences. Pubsub Py will process your message, place an order for you, and send a confirmation text along with a reminder to pick up your sandwich.
+
+## Contributing
+
+We welcome contributions to this project. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to contribute.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.
+
