@@ -96,14 +96,15 @@ def incoming_sms():
     # Based on the telephone number, get the user from the database
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
 
-    #Initialize the user
-    if not user:
-        user = start_action(session)
-        current_user_state = user.state
-    # If the user exists, query the state they're currently in
-    else:
-        current_user_state = session.query(Users).filter(Users.phone_number == request.values.get("From")).first().state
+    # Initialize the user
+    """
+    This calls the custom get_user function, which either finds the user in the database
+    and returns their info as a class, or creates a new user in the database and returns 
+    their info as a class.
+    """
+    user = get_user(session)
 
+    current_user_state = user.state
     # Get the action corresponding to the user's current state
     action = state_machine[current_user_state]['action']
     """
