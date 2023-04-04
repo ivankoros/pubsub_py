@@ -93,11 +93,14 @@ def incoming_sms():
     # Send the response message
     resp = MessagingResponse()
 
-    if next_state == 'get_store_location':
-        resp.message(f"Hey, {user.name}!")
-        resp.message(message)
-    else:
-        resp.message(message)
+    match next_state:
+        case 'get_name':
+            resp.message(f"Hey, welcome to Pubsub Py!")
+        case 'get_store_location':
+            resp.message(f"Hey, {user.name}!")
+            resp.message(message)
+        case _:
+            resp.message(message)
 
     return Response(str(resp), mimetype="application/xml")
 
