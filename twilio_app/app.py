@@ -92,8 +92,15 @@ def incoming_sms():
 
     # Send the response message
     resp = MessagingResponse()
-    resp.message(message)
+
+    if next_state == 'get_store_location':
+        resp.message(f"Hey, {user.name}!")
+        resp.message(message)
+    else:
+        resp.message(message)
+
     return Response(str(resp), mimetype="application/xml")
+
 
 state_info = {
     'start': {

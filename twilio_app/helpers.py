@@ -33,6 +33,7 @@ class TextResponses:
         }
 
     def get_response(self, response):
+
         return random.choice(self.text_responses[response])
 
 
