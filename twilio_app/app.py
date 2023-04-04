@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 
 # Find/initialize the user
-def get_user(session):
+def get_user(session, *args):
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
     if not user:
         user = Users(phone_number=request.values.get("From"),
@@ -28,18 +28,18 @@ def get_user(session):
     return user
 
 
-def start_action():
-    # Initialize the user in the database and prompt for their name
-
-    return 'get_name', states['get_name']
-
+def start_action(*args):
+    # Switches the user to the get_name state automatically
+    # Might remove this later and just have the user initialized
+    #   into the get_name state
+    return 'get_name', state_info['get_name']['text_response']
 
 
 def get_name_action(body, session, user):
     # Get the user's name and save it to the database
     user.name = body
     session.commit()
-    return 'get_store_location', states['get_store_location']
+    return 'get_store_location', state_info['get_store_location']['text_response']
 
 def get_store_location_action(body, session, user):
     # This will later be replaced with a function that gets the user's geolocation
@@ -49,9 +49,9 @@ def get_store_location_action(body, session, user):
 
     user.selected_store_address = body
     session.commit()
-    return 'get_sale', states['get_sale']
+    return 'get_sale', state_info['get_sale']['text_response']
 
-def get_sale_action(body, session, user):
+def get_sale_action(session, *args):
     # Check if there are any sales today and return the corresponding message
     today = datetime.today().date()
     sales = session.query(SubDeal).filter(SubDeal.date == today).all()
@@ -67,111 +67,68 @@ def get_sale_action(body, session, user):
 
     # If there are no sales, return the no sale message
     else:
-        message = message = TextResponses().get_response("no_sale")
+        message = TextResponses().get_response("no_sale")
 
     # Go to the default state
     return 'default', message
 
 
-def default_action(body, session, user):
+def default_action(*args):
     # If the user input is recognized, initialize the default state
-    return 'default', states['default']
+    return 'default', state_info['default']['text_response']
 
 
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
-    # Initalize database
+    # Initialize the database session
     session = initialize_database()
 
-    # Based on the telephone number, get the user from the database
-    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
-
     # Initialize the user
-    """
-    This calls the custom get_user function, which either finds the user in the database
-    and returns their info as a class, or creates a new user in the database and returns 
-    their info as a class.
-    """
-    user = get_user(session)  # This is a class with attributes: phone_number, name, selected_store_address, state
+    user = get_user(session)
 
-    # Get the current state of the user
-    current_user_state = user.state
+    # Get the action and required arguments from state_info
+    action = state_info[user.state]['action']
+    args = [request.values.get("Body", ""), session, user]
 
-    # Get the action corresponding to the user's current state
-    action = state_machine[current_user_state]['action']
-    """
-    For example, if it's a new user, they're going to be in the 'start' state.
-    
-    The action corresponding to the 'start' state is the start_action function.
-        - Found in the state_machine dictionary below
-    """
-
-    match current_user_state:
-        case 'start':
-            body = request.values.get("Body", "")
-            next_state, message = action()
-            user.state = next_state
-            session.commit()
-        case 'get_name':
-            body = request.values.get("Body", "")
-            next_state, message = action(body, session, user)
-            user.state = next_state
-            session.commit()
-        case 'get_store_location':
-            body = request.values.get("Body", "")
-            next_state, message = action(body, session, user)
-            user.state = next_state
-            session.commit()
-        case 'get_sale':
-            body = request.values.get("Body", "")
-            next_state, message = action(body, session, user)
-            user.state = next_state
-            session.commit()
-        case 'default':
-            body = request.values.get("Body", "")
-            next_state, message = action(body, session, user)
-            user.state = next_state
-            session.commit()
-        case _:
-            message = "If you see this it means I really messed up"
+    # Execute the action and update the user state
+    next_state, message = action(*args)
+    user.state = next_state
+    session.commit()
 
     # Send the response message
     resp = MessagingResponse()
-    assert isinstance(message, object)
     resp.message(message)
     return Response(str(resp), mimetype="application/xml")
 
-
-states = {
-    'start': TextResponses().get_response("start"),
-    'get_name': TextResponses().get_response("get_name"),
-    'get_store_location': TextResponses().get_response("get_store_location"),
-    'get_sale': TextResponses().get_response("get_sale"),
-    'default': TextResponses().get_response("default"),
-}
-
-state_machine = {
+state_info = {
     'start': {
+        'text_response': TextResponses().get_response("start"),
         'action': start_action,
         'next_states': ['get_name']
     },
     'get_name': {
+        'text_response': TextResponses().get_response("get_name"),
         'action': get_name_action,
         'next_states': ['get_store_location']
     },
     'get_store_location': {
+        'text_response': TextResponses().get_response("get_store_location"),
         'action': get_store_location_action,
         'next_states': ['get_sale']
     },
     'get_sale': {
+        'text_response': TextResponses().get_response("get_sale"),
         'action': get_sale_action,
         'next_states': ['default']
     },
     'default': {
+        'text_response': TextResponses().get_response("default"),
         'action': default_action,
         'next_states': []
     }
 }
+
+
 
 if __name__ == "__main__":
     app.run(debug=True,
