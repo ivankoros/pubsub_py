@@ -7,7 +7,6 @@ from resources import Users
 from resources import initialize_database
 from twilio_app import TextResponses
 
-
 app = Flask(__name__)
 
 
@@ -23,44 +22,36 @@ def get_user(session):
         session.commit()
     else:
         user = Users(phone_number=request.values.get("From"),
-                        name=user.name,
-                        selected_store_address=user.selected_store_address,
-                        state=user.state)
+                     name=user.name,
+                     selected_store_address=user.selected_store_address,
+                     state=user.state)
     return user
+
 
 def start_action(body, session):
     # Initialize the user in the database and prompt for their name
-    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
-    if not user:
-        user = Users(phone_number=request.values.get("From"),
-                     name=None,
-                     selected_store_address=None,
-                     state='start')
-        session.add(user)
-        session.commit()
-        return 'get_name', states['get_name']
-    else:
-        return 'get_store_location', states['get_store_location']
+
+    return 'get_name', states['get_name']
 
 
-def get_name_action(body, session):
+
+def get_name_action(body, session, user):
     # Get the user's name and save it to the database
-    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
     user.name = body
     session.commit()
     return 'get_store_location', states['get_store_location']
 
+def get_store_location_action(body, session, user):
+    # This will later be replaced with a function that gets the user's geolocation
+    #   and returns the nearest store using the find_nearest_stores function
+    #   and the Google Maps api
+    # But for now it just gets the user's address
 
-def get_store_location_action(body, session):
-    # Find the nearest store based on the user's input and set it in the database
-    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
-    if user.selected_store_address is None:
-        user.selected_store_address = body
-        session.commit()
+    user.selected_store_address = body
+    session.commit()
     return 'get_sale', states['get_sale']
 
-
-def get_sale_action(body, session):
+def get_sale_action(body, session, user):
     # Check if there are any sales today and return the corresponding message
     today = datetime.today().date()
     sales = session.query(SubDeal).filter(SubDeal.date == today).all()
@@ -82,10 +73,9 @@ def get_sale_action(body, session):
     return 'default', message
 
 
-def default_action(body, session):
+def default_action(body, session, user):
     # If the user input is recognized, initialize the default state
     return 'default', states['default']
-
 
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -121,10 +111,9 @@ def incoming_sms():
 
     # What I'm doing here is using the action state as a function,
     # with inputs of the user's input and the database session
-    next_state, message = action(body, session)
+    next_state, message = action(body, session, user)
     user.state = next_state
-    session.commit()
-    # Update the user's state in the database
+    session.commit()  # Commit the user's new state to the database
 
     # Send the response message
     resp = MessagingResponse()
@@ -143,7 +132,7 @@ states = {
 state_machine = {
     'start': {
         'action': start_action,
-        'next_states': ['get_name', 'get_store_location']
+        'next_states': ['get_name']
     },
     'get_name': {
         'action': get_name_action,
