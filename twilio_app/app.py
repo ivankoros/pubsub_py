@@ -10,7 +10,25 @@ from twilio_app import TextResponses
 
 app = Flask(__name__)
 
-def start_action(user_input, session):
+
+# Find/initialize the user
+def get_user(session):
+    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
+    if not user:
+        user = Users(phone_number=request.values.get("From"),
+                     name=None,
+                     selected_store_address=None,
+                     state='start')
+        session.add(user)
+        session.commit()
+    else:
+        user = Users(phone_number=request.values.get("From"),
+                        name=user.name,
+                        selected_store_address=user.selected_store_address,
+                        state=user.state)
+    return user
+
+def start_action(session):
     # Initialize the user in the database and prompt for their name
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
     if not user:
@@ -72,23 +90,38 @@ def default_action(user_input, session):
 
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
+    # Initalize database
     session = initialize_database()
-    body = request.values.get("Body", "")
 
+    # Based on the telephone number, get the user from the database
     user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
 
+    #Initialize the user
     if not user:
-        start_action("hi", session)
+        user = start_action(session)
+        current_user_state = user.state
+    # If the user exists, query the state they're currently in
+    else:
+        current_user_state = session.query(Users).filter(Users.phone_number == request.values.get("From")).first().state
 
-    current_state = session.query(Users).filter(Users.phone_number == request.values.get("From")).first().state
-    # Get the action and next state based on the user's input and current state
+    # Get the action corresponding to the user's current state
+    action = state_machine[current_user_state]['action']
+    """
+    For example, if it's a new user, they're going to be in the 'start' state.
+    
+    The action corresponding to the 'start' state is the start_action function.
+        - Found in the state_machine dictionary below
+    """
 
-    action = state_machine[current_state]['action']
+    # Find the user's input (the "body" of their text message)
+    body = request.values.get("Body", "")
 
+    # What I'm doing here is using the action state as a function,
+    # with inputs of the user's input and the database session
     next_state, message = action(body, session)
 
     # Update the user's state in the database
-    if user:
+
         user.state = next_state
         session.commit()
 
