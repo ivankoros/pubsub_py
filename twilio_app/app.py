@@ -82,7 +82,7 @@ def get_sale_action(body, session):
     return 'default', message
 
 
-def default_action(user_input, session):
+def default_action(body, session):
     # If the user input is recognized, initialize the default state
     return 'default', states['default']
 
@@ -122,11 +122,9 @@ def incoming_sms():
     # What I'm doing here is using the action state as a function,
     # with inputs of the user's input and the database session
     next_state, message = action(body, session)
-
+    user.state = next_state
+    session.commit()
     # Update the user's state in the database
-
-        user.state = next_state
-        session.commit()
 
     # Send the response message
     resp = MessagingResponse()
