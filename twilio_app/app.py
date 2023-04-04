@@ -7,25 +7,8 @@ from resources import Users
 from resources import initialize_database
 from twilio_app import TextResponses
 
+
 app = Flask(__name__)
-
-
-class IncomingTest:
-    def __init__(self, body):
-        self.body = body
-
-    def sub_name(self):
-        return self.body
-
-
-states = {
-    'start': TextResponses().get_response("start"),
-    'get_name': TextResponses().get_response("get_name"),
-    'get_store_location': TextResponses().get_response("get_store_location"),
-    'get_sale': TextResponses().get_response("get_sale"),
-    'default': TextResponses().get_response("default"),
-}
-
 
 def start_action(user_input, session):
     # Initialize the user in the database and prompt for their name
@@ -33,7 +16,8 @@ def start_action(user_input, session):
     if not user:
         user = Users(phone_number=request.values.get("From"),
                      name=None,
-                     selected_store_address=None)
+                     selected_store_address=None,
+                     state='start')
         session.add(user)
         session.commit()
         return 'get_name', states['get_name']
@@ -80,10 +64,47 @@ def get_sale_action(user_input, session):
     return 'default', message
 
 
-def default_action(user_input):
+def default_action(user_input, session):
     # If the user input is recognized, initialize the default state
     return 'default', states['default']
 
+
+
+@app.route("/sms", methods=['GET', 'POST'])
+def incoming_sms():
+    session = initialize_database()
+    body = request.values.get("Body", "")
+
+    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
+
+    if not user:
+        start_action("hi", session)
+
+    current_state = session.query(Users).filter(Users.phone_number == request.values.get("From")).first().state
+    # Get the action and next state based on the user's input and current state
+
+    action = state_machine[current_state]['action']
+
+    next_state, message = action(body, session)
+
+    # Update the user's state in the database
+    if user:
+        user.state = next_state
+        session.commit()
+
+    # Send the response message
+    resp = MessagingResponse()
+    resp.message(message)
+    return Response(str(resp), mimetype="application/xml")
+
+
+states = {
+    'start': TextResponses().get_response("start"),
+    'get_name': TextResponses().get_response("get_name"),
+    'get_store_location': TextResponses().get_response("get_store_location"),
+    'get_sale': TextResponses().get_response("get_sale"),
+    'default': TextResponses().get_response("default"),
+}
 
 state_machine = {
     'start': {
@@ -107,35 +128,6 @@ state_machine = {
         'next_states': []
     }
 }
-
-
-@app.route("/sms", methods=['GET', 'POST'])
-def incoming_sms():
-    session = initialize_database()
-    body = request.values.get("Body", "")
-
-    user = session.query(Users).filter(Users.phone_number == request.values.get("From")).first()
-    current_state = user.state
-    # Get the action and next state based on the user's input and current state
-
-    action = state_machine[current_state]['action']
-    next_states = state_machine[current_state]['next_states']
-    print("Current state: " + current_state)
-    print("Next states: " + str(next_states))
-    next_state, message = action(body, session) if body.lower() in next_states else default_action(body)
-    print("Next state: " + next_state)
-    print("Message: " + message)
-
-    # Update the user's state in the database
-    if user:
-        user.state = next_state
-        session.commit()
-
-    # Send the response message
-    resp = MessagingResponse()
-    resp.message(message)
-    return Response(str(resp), mimetype="application/xml")
-
 
 if __name__ == "__main__":
     app.run(debug=True,
