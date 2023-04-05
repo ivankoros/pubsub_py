@@ -4,7 +4,7 @@
 
 Pubsub Py simplifies your Publix deli sub ordering process using natural language processing, allowing you to find deals of your local deli with one text and place an order with another.
 
-Powered by **Selenium 4**, Pubsub Py scrapes your local deli's website daily and keeps you informed through text, courtesy of **Twilio**. Your text responses are cleaned and parsed using **Spacy** natural language processing, enabling one-text order placement. Supported by an **AWS** RDS **MySQL*** cloud database and **Docker** for efficient, containerized runtimes, Pubsub Py grabbing a quick lunch easy on your wallet and mind.
+Powered by **Selenium 4**, Pubsub Py scrapes your local deli's website daily and keeps you informed through text, courtesy of **Twilio**. Your text responses are cleaned and parsed using **Spacy** natural language processing, enabling one-text order placement. Supported by an **AWS** RDS **MySQL** cloud database and **Docker** for efficient, containerized runtimes, Pubsub Py grabbing a quick lunch easy on your wallet and mind.
 
 This project has two main sections:
 
