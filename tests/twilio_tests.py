@@ -38,7 +38,8 @@ def test_get_name_action():
     """
     body = "John Doe"
     session_mock = MagicMock()
-    user = Users(phone_number="1234567890", state='start')
+    user = Users(phone_number="1234567890", name="John Doe", selected_store_address='Sesame Street',
+                 state='start')
 
     next_state, message = get_name_action(body, session_mock, user)
 
@@ -55,7 +56,8 @@ def test_get_store_location_action():
     """
     body = "123 Main St"
     session_mock = MagicMock()
-    user = Users(phone_number="1234567890", name="John Doe", state='get_name')
+    user = Users(phone_number="1234567890", name="John Doe", selected_store_address='Sesame Street',
+                 state='get_name')
 
     next_state, message = get_store_location_action(body, session_mock, user)
 
@@ -74,8 +76,9 @@ def test_get_sale_action():
 
     body = ""
     session_mock = MagicMock()
-    user = Users(phone_number="1234567890", name="John Doe", state='get_store_location')
-    sale = SubDeal(name="Tuna Sub", date="2023-04-05")
+    user = Users(phone_number="1234567890", name="John Doe", state='get_store_location',
+                 selected_store_address="123 Main St")
+    sale = SubDeal(name="Tuna Sub", date="2023-04-05", location="123 Main St")
     session_mock.query.return_value.filter.return_value.all.return_value = [sale]
 
     next_state, message = get_sale_action(body, session_mock, user)
