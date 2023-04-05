@@ -36,7 +36,7 @@ These instructions will guide you through setting up Pubsub Py on your local mac
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/pubsub_py.git
+git clone https://github.com/ivankoros/pubsub_py
 cd pubsub_py
 ```
 
