@@ -19,6 +19,7 @@ This project has two main sections:
 - State machine-based flow with MySQL integration allows personalized user management across sessions
 - Spacy's natural language processing turns natural user inputs into accurate assessments of order intent, handing extracted results back to Selenium to submit your order
 
+![Flow](ddd.drawio.svg)
 
 ## Getting Started
 
