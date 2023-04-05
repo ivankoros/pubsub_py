@@ -20,7 +20,7 @@ This project has two main sections:
 - Spacy's natural language processing turns natural user inputs into accurate assessments of order intent, handing extracted results back to Selenium to submit your order
 
 ## Flow diagram
-![Flow](ddd.svg)
+![Flow](Flowchart.svg)
 
 ## Getting Started
 
