@@ -8,10 +8,14 @@ Powered by Selenium 4, Pubsub Py scrapes your local deli's website daily and kee
 
 This project has two main sections:
 
+## Selenium Browser Automation
+- Human-like interaction allows for 100% success rate in scraping your deli's daily deals
+  - User agent switching, randomized interaction, dynamic pop-up interaction...
+- Easy custom element selection and input for dates, times, locations, and user info
+- MySQL database integration with built-in error handling with testing
+
 ## Twilio and Twiml Messaging
-- 
-
-
+- Human 
 
 ### Major Technologies Used
 
