@@ -4,6 +4,7 @@ import requests
 import os
 from dotenv import load_dotenv
 
+
 # These are the text responses that I'm using in a class
 class TextResponses:
     def __init__(self):
@@ -33,9 +34,7 @@ class TextResponses:
         }
 
     def get_response(self, response):
-
         return random.choice(self.text_responses[response])
-
 
 
 # This is the function that I'm trying to test that takes in the geolocation
@@ -68,3 +67,75 @@ def clean_text(self):
     text = text.encode("ascii", "ignore").decode()
 
     pass
+
+
+toppings = {
+    "size": {
+        "half": "Half",
+        "whole": "Whole"
+    },
+    "bread": {
+        "italian_5_grain": "Italian 5 Grain",
+        "white": "White",
+        "whole_wheat": "Whole Wheat",
+        "flatbread": "Flatbread",
+        "no_bread_lettuce": "No Bread (Make it a Salad) - Lettuce Base",
+        "no_bread_spinach": "No Bread (Make it a Salad) - Spinach Base"
+    },
+    "cheese": {
+        "pepper_jack": "Pepper Jack",
+        "cheddar": "Cheddar",
+        "muenster": "Muenster",
+        "provolone": "Provolone",
+        "swiss": "Swiss",
+        "white_american": "White American",
+        "yellow_american": "Yellow American",
+        "no_cheese": "No Cheese"
+    },
+    "extras": {
+        "double_meat": "Double Meat",
+        "double_cheese": "Double Cheese",
+        "bacon": "Bacon",
+        "guacamole": "Guacamole",
+        "hummus": "Hummus",
+        "avocado": "Avocado"
+    },
+    "toppings": {
+        "banana_peppers": "Banana Peppers",
+        "black_olives": "Black Olives",
+        "boars_head_garlic_pickles": "Boar's Head Garlic Pickles",
+        "cucumbers": "Cucumbers",
+        "dill_pickles": "Dill Pickles",
+        "green_peppers": "Green Peppers",
+        "jalapeno_peppers": "Jalapeno Peppers",
+        "lettuce": "Lettuce",
+        "onions": "Onions",
+        "spinach": "Spinach",
+        "tomato": "Tomato",
+        "salt": "Salt",
+        "black_pepper": "Black Pepper",
+        "oregano": "Oregano",
+        "oil_vinegar_packets": "Oil & Vinegar Packets"
+    },
+    "condiments": {
+        "boars_head_honey_mustard": "Boar's Head Honey Mustard",
+        "boars_head_spicy_mustard": "Boar's Head Spicy Mustard",
+        "mayonnaise": "Mayonnaise",
+        "yellow_mustard": "Yellow Mustard",
+        "vegan_ranch_dressing": "Vegan Ranch Dressing",
+        "buttermilk_ranch": "Buttermilk Ranch",
+        "boars_head_sub_dressing": "Boar's Head Sub Dressing",
+        "boars_head_pepperhouse_gourmaise": "Boar's Head Pepperhouse Gourmaise",
+        "boars_head_chipotle_gourmaise": "Boar's Head Chipotle Gourmaise",
+        "deli_sub_sauce": "Deli Sub Sauce"
+    },
+    "heating_options": {
+        "pressed": "Pressed",
+        "toasted": "Toasted",
+        "no_thanks": "No Thanks"
+    },
+    "make_it_a_combo": {
+        "yes": "Yes",
+        "no_thanks": "No Thanks"
+    }
+}

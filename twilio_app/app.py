@@ -10,7 +10,6 @@ from twilio_app import TextResponses
 
 app = Flask(__name__)
 
-
 # Find/initialize the user
 def get_user(session):
     phone_number = request.values.get("From")
@@ -132,7 +131,6 @@ state_info = {
         'next_states': []
     }
 }
-
 
 
 if __name__ == "__main__":
