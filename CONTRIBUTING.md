@@ -8,13 +8,13 @@ Thank you for your interest in contributing to Pubsub Py! We appreciate your hel
 
 2. Clone your forked repository to your local machine:
 ```bash
-git clone https://github.com/yourusername/pubsub_py.git
+git clone https://github.com/ivankoros/pubsub_py
 cd pubsub_py
 ```
 
 3. Set up a new remote pointing to the upstream repository:
 ```bash
-git remote add upstream https://github.com/originalusername/pubsub_py.git
+git remote add upstream https://github.com/ivankoros/pubsub_py
 ```
 
 4. Follow the installation and setup steps provided in the [README.md](README.md) file.
@@ -23,7 +23,7 @@ git remote add upstream https://github.com/originalusername/pubsub_py.git
 
 1. Create a new branch for your feature or bugfix:
 ```bash
-git checkout -b your_feature_branch
+git checkout -b main
 ```
 
 2. Make your changes and commit them with a descriptive commit message. Please follow the [Conventional Commits](https://www.conventionalcommits.org/) guidelines.
@@ -40,7 +40,7 @@ git rebase upstream/main
 
 5. Push your changes to your fork:
 ```bash
-git push origin your_feature_branch
+git push origin main
 ```
 
 6. Create a pull request from your forked repository's branch to the upstream `main` branch. Be sure to provide a clear description of your changes in the pull request.
