@@ -15,14 +15,10 @@ This project has two main sections:
 - MySQL database integration with built-in error handling with testing
 
 ## Twilio and Twiml Messaging
-- Human 
+- Twilio and Twilm APIs talk to a Flask app (through Ngrok) with webhooks to read user responses
+- State machine-based flow with MySQL integration allows personalized user management across sessions
+- Spacy's natural language processing turns natural user inputs into accurate assessments of order intent, handing extracted results back to Selenium to submit your order
 
-### Major Technologies Used
-
-- **Selenium**: A Python library for web automation that enables autonomous browser control for automated web page interaction.
-- **Twilio**: A cloud communications platform that automates incoming and outgoing SMS using its Python library.
-- **SpaCy**: A Python library for natural language processing, used to extract meaning from text, such as customer preferences, to help create the perfect sandwich.
-- **Docker**: A containerization platform that packages applications and their dependencies in lightweight, portable containers for easy deployment.
 
 ## Getting Started
 
@@ -65,7 +61,9 @@ export YOUR_PHONE_NUMBER=your_phone_number
 
 ## Usage
 
-Once everything is set up, send a text message to the Twilio phone number with your sandwich preferences. Pubsub Py will process your message, place an order for you, and send a confirmation text along with a reminder to pick up your sandwich.
+The bot can be used to order a custom sub from Publix, with options for selecting the store location, sub customization, pickup date and time, and customer details. The bot is also capable of collecting information on current sub deals and updating the database with new deals as they appear.
+
+By using this bot, customers can easily and quickly order their favorite subs from Publix without having to navigate through the website manually.
 
 ## Contributing
 
