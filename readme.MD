@@ -60,12 +60,31 @@ export TWILIO_PHONE_NUMBER=your_twilio_phone_number
 export YOUR_PHONE_NUMBER=your_phone_number
 ```
 
-
 ## Usage
 
 The bot can be used to order a custom sub from Publix, with options for selecting the store location, sub customization, pickup date and time, and customer details. The bot is also capable of collecting information on current sub deals and updating the database with new deals as they appear.
 
 By using this bot, customers can easily and quickly order their favorite subs from Publix without having to navigate through the website manually.
+
+## Running Tests
+
+To ensure the functionality of both Twilio and Selenium components app components, I've implemented unit tetsts through Python's Magic Mock and Pytest (found in tests/). Follow these steps to run the tests:
+
+1. Ensure you are in the root directory of the project.
+
+2. Run the tests
+ - Twilio/Twilm Flask app tests:
+ 
+   ```python
+   python -m unittest tests/tests.py
+   ```
+- Selenium tests:
+   ```python
+   python -m unittest tests/tests.py
+   ```
+
+The tests will be executed, and you will see the results in your terminal. The tests cover ever function in the Flask app, such as login, registration, file upload, and file validation.
+
 
 ## Contributing
 
