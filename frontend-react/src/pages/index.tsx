@@ -5,7 +5,29 @@ import styles from '@/styles/Home.module.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+const defaultEndpoint = 'http://127.0.0.1:5000';
+
+export async function getServerSideProps() {
+  const res = await fetch(defaultEndpoint);
+  const data: flask_data[] = await res.json();
+
+  return {
+    props: {
+      data,
+    },
+  };
+}
+
+interface flask_data {
+  id: number;
+  phone_number: string;
+  name: string;
+  selected_store_address: string;
+}
+
+
+export default function Home( { data }: { data: flask_data[] }) {
+  console.log(data);
   return (
     <>
       <Head>
