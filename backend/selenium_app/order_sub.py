@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from resources import create_webdriver
+from backend.resources import create_webdriver
 
 
 def order_sub():
