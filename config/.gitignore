@@ -12,6 +12,8 @@ __pycache__/
 # C extensions
 *.so
 
+../twilio_app/.ipynb_checkpoints
+
 # Distribution / packaging
 .Python
 build/
@@ -180,3 +182,35 @@ pyrightconfig.json
 /.idea/.name
 /sub_deal_data.db
 /.idea/dataSources.xml
+
+
+## React Gitignore ##
+../frontend-react/node_modules
+../frontend-react/.pnp
+../frontend-react/.pnp.js
+../frontend-react/.env
+
+../frontend-react/.next
+../frontend-react/out
+../frontend-react/build
+
+# misc
+../frontend-react/.DS_Store
+../frontend-react/*.pem
+
+# debug
+../frontend-react/npm-debug.log*
+../frontend-react/yarn-debug.log*
+../frontend-react/yarn-error.log*
+../frontend-react/pnpm-debug.log*
+
+# local env files
+../frontend-react/.env.local
+
+# vercel
+../frontend-react/.vercel
+
+# typescript
+../frontend-react/tsconfig.tsbuildinfo
+../frontend-react/.tsbuildinfo
+../frontend-react/next-env.d.ts
