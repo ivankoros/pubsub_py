@@ -4,6 +4,7 @@ from flask_restful import Resource, Api
 from twilio.twiml.messaging_response import MessagingResponse
 from backend.resources import initialize_database
 from state_flow_mechanism import get_user, state_info
+from backend.resources import Users
 
 app = Flask(__name__)
 api = Api(app)
@@ -42,12 +43,27 @@ def incoming_sms():
 
     return Response(str(resp), mimetype="application/xml")
 
-class HelloWorld(Resource):
+class UserData(Resource):
+    # when this get function is called, it will query the database and return the results
     def get(self):
-        return {'hello': 'world'}
+        session = initialize_database()
+        users = session.query(Users).all()
+
+        users_dict = {"users": []}
+
+        for user in users:
+            user_dict = {
+                "id": user.id,
+                "phone_number": user.phone_number,
+                "name": user.name,
+                "selected_store_address": user.selected_store_address,
+                "state": user.state
+            }
+            users_dict["users"].append(user_dict)
+        return users_dict
 
 
-api.add_resource(HelloWorld, '/')
+api.add_resource(UserData, '/')
 
 
 if __name__ == "__main__":
