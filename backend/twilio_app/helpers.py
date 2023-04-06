@@ -69,7 +69,8 @@ def clean_text(self):
     pass
 
 
-toppings = {
+# All possible customization tops for Publix subs
+customizations = {
     "size": {
         "half": "Half",
         "whole": "Whole"
