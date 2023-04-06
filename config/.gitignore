@@ -12,6 +12,8 @@ __pycache__/
 # C extensions
 *.so
 
+../twilio_app/.ipynb_checkpoints
+
 # Distribution / packaging
 .Python
 build/

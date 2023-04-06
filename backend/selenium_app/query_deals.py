@@ -8,9 +8,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from sqlalchemy.orm import declarative_base
 
-from resources import SubDeal
-from resources import create_webdriver
-from resources import initialize_database
+from backend.resources import SubDeal
+from backend.resources import create_webdriver
+from backend.resources import initialize_database
 
 # SQSQLAlchemy configuration & setup
 Base = declarative_base()

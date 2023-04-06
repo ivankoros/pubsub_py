@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from twilio_app import get_user, start_action, get_name_action, get_store_location_action, get_sale_action, default_action
-from resources import Users, SubDeal
+from backend.twilio_app import get_user, start_action, get_name_action, get_store_location_action, get_sale_action, default_action
+from backend.resources import Users, SubDeal
 
 def test_get_user():
     """Checks if the get_user function correctly initializes a new user

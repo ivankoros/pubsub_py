@@ -3,10 +3,10 @@ from datetime import datetime
 from flask import Flask, Response, request
 from twilio.twiml.messaging_response import MessagingResponse
 
-from resources import SubDeal
-from resources import Users
-from resources import initialize_database
-from twilio_app import TextResponses
+from backend.resources import SubDeal
+from backend.resources import Users
+from backend.resources import initialize_database
+from backend.twilio_app import TextResponses
 
 app = Flask(__name__)
 
