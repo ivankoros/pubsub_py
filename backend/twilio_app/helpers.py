@@ -56,19 +56,6 @@ def find_nearest_stores(location, keyword="Publix", result_count=3):
     return response_data['results'][:result_count]
 
 
-# Text cleaning function for NLP input
-def clean_text(self):
-    text = self.text
-
-    # Lowercase
-    text = text.lower()
-
-    # Remove unicode
-    text = text.encode("ascii", "ignore").decode()
-
-    pass
-
-
 # All possible customization tops for Publix subs
 customizations = {
     "size": {
