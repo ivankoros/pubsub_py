@@ -107,10 +107,9 @@ def order_sub(self):
     # Open up the date picker (calendar-style)
     driver.implicitly_wait(5)
     driver.find_element(By.CSS_SELECTOR, '.datepicker-activate').click()
-    time.sleep(2)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
+    time.sleep(1)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
 
     # The date is easy to enter, as it is a calendar-style picker and each date has a unique label which we can use to find it
-    date_of_order = self.date_of_order
     """
     This date is currently not being used, it's just selecting the first date in the calendar, which is today.
     I will add functionality to select a date in the future, but for now, it's just today.
@@ -128,13 +127,16 @@ def order_sub(self):
 
     select = Select(time_dropdown)
 
-    all_times = driver.find_elements(By.XPATH, '//span[@class="time-item"]')
-    pickup_time = all_times[1].text
-    print(pickup_time)
+    pickup_time = select.options[1]  # Get the first available time slot (index 0 is empty)
+
+    # Use JavaScript to get the text content of the first time option
+    first_time_text = driver.execute_script("return arguments[0].textContent", pickup_time).strip()
+    print(f"First pickup time: {first_time_text}")
 
     select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
 
     # Click the next button, unlocking the next form below with the payment information
+
     next_button = '//*[@id="content_26"]/form/div[3]/div/button'
     driver.implicitly_wait(5)
     driver.find_element(By.XPATH, next_button).click()
