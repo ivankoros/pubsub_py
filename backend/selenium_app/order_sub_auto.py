@@ -136,10 +136,10 @@ def order_sub(self):
     select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
 
     # Click the next button, unlocking the next form below with the payment information
-
-    next_button = '//*[@id="content_26"]/form/div[3]/div/button'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, next_button).click()
+    final_next_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="content_26"]/form/div[3]/div/button'))
+    )
+    final_next_button.click()
 
     # This is the payment information section, where instead of credit card info, I choose "pay in store"
 
