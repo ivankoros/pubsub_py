@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from sqlalchemy.orm import declarative_base
+from backend.selenium_app.helpers import webdriver_location_input
 
 from backend.resources import SubDeal
 from backend.resources import create_webdriver
@@ -116,8 +117,6 @@ def main():
             accept_button.click()
     except:
         pass
-
-    from helpers import webdriver_location_input
 
     location = 'St. John\'s Town Center'
     webdriver_location_input(driver, location)
