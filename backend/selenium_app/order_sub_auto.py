@@ -69,11 +69,12 @@ def order_sub(self):
     add_to_cart_button = '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button'
     driver.find_element(By.XPATH, add_to_cart_button).click()
     time.sleep(1)
+
     # Instead of going through several more buttons, I go to this link below, which puts me in the checkout page without any more clicks
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
     # A prompt pops up asking to confirm my location (always) and I click on the button to confirm it
-    driver.implicitly_wait(5)
+    driver.implicitly_wait(3)
     confirm_store_location_button = '//*[@id="body-wrapper"]/div/div[2]/div/div[3]/div/div/button[2]'
 
     try:
@@ -83,12 +84,12 @@ def order_sub(self):
     except NoSuchElementException:
         print("No such element, continuing...")
 
-    time.sleep(100)
-
-    # Click the checkout button
-    driver.implicitly_wait(2)
-    checkout_button = '//*[@id="two-column-container"]/div[2]/div/div/div[1]/div[2]/button'
-    driver.find_element(By.XPATH, checkout_button).click()
+    # time.sleep(100)
+    #
+    # # Click the checkout button
+    # driver.implicitly_wait(2)
+    # checkout_button = '//*[@id="two-column-container"]/div[2]/div/div/div[1]/div[2]/button'
+    # driver.find_element(By.XPATH, checkout_button).click()
 
     # Input info for pickup
 
@@ -139,6 +140,7 @@ def order_sub(self):
     driver.find_element(By.XPATH, next_button).click()
 
     # This is the payment information section, where instead of credit card info, I choose "pay in store"
+
     driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
     #
     # # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
