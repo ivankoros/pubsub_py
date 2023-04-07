@@ -1,10 +1,11 @@
+import time
 from datetime import datetime
 from flask import Flask, Response, request
 
 from backend.resources import SubDeal
 from backend.resources import Users
-from helpers import TextResponses, SubOrder
-from backend.selenium_app import order_sub
+from backend.twilio_app.helpers import TextResponses, SubOrder, all_sandwiches
+from backend.selenium_app.order_sub_auto import order_sub
 
 
 # Find/initialize the user
@@ -68,28 +69,33 @@ def get_sale_action(body, session, *args):
 def default_action(message, *args):
     # If the user input is recognized, initialize the default state
     if "order" in message:
-        return 'order_sub', "You triggered the order sub action state." \
-                            " Say 'Italian sub' to order the Italian sub." \
-                            " Say anything else to go back to the default state."
+        return 'order_sub', "You triggered the order sub action state. " \
+                            "Say a sub name to order a sub. " \
+                            "Say 'exit' to go back to the default state."
     else:
         return 'default', state_info['default']['text_response']
 
 def order_sub_action(body, session, user, *args):
 
-    order = SubOrder(
-        requested_sub=body,
-        # Query store name from database vs user's phone number
-        store_name=session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_address,
-        date_of_order=datetime.today().date().strftime("%A, %B %d, %Y")
+    if body in all_sandwiches:
 
-    )
+        order = SubOrder(
+            requested_sub=body,
+            # Query store name from database vs user's phone number
+            store_name=session.query(Users).filter(
+                Users.phone_number == user.phone_number).first().selected_store_address,
+            date_of_order=datetime.today().date().strftime("%A, %B %d, %Y")
 
-    match body:
-        case 'Publix Italian':
-            order_sub(order)
-            return 'order_sub', "you're in the ordr sub action state"
-        case _:
-            return 'default', "you're back to the default state"
+        )
+
+        order = order_sub(order)
+
+        return 'default', order.__str__()
+    if body == "exit":
+        return 'default', "you said exit, you're now in the default sate. say 'order' to order a sub."
+    else:
+        return 'order_sub', f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
+                            " default state"
 
 
 # This dictionary contains the state information for the state machine
