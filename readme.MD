@@ -1,4 +1,4 @@
-# Pubsub Py: Allowing automated, simple ordering for Publix deli subs through text with natural language processing
+# Pubsub Py: Natural, one-sentence ordering text platoform for Publix deli subs with natural language processing
 
 **Note: This project is a work in progress.**
 
