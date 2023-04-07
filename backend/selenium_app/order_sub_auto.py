@@ -2,14 +2,14 @@ import random
 import time
 
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
-from backend.selenium_app.helpers import webdriver_location_input
+from backend.selenium_app.helpers import webdriver_location_input, generate_user_info
 from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
 
 from backend.resources import create_webdriver
-import helpers
 
 
 def order_sub(self):
@@ -47,19 +47,17 @@ def order_sub(self):
     except:
         pass
 
-    print('made it past the except button')
-    # Location chooser
-    # click on the text box and type in the location
-
+    # Store location input
     location = self.store_name.strip()
-    webdriver_location_input(driver, location)
+    official_location_name = webdriver_location_input(driver, location)
+    print(official_location_name)
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     # Click on the correct sub
-    time.sleep(8)
-    sandwich = self.requested_sub.strip()
-    sandwich_xpath = f'//*[contains(text(),"{sandwich}")]'
-    driver.find_element(By.XPATH, sandwich_xpath).click()
+    pick_sandwich = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, f'//*[contains(text(),"{self.requested_sub.strip()}")]'))
+    )
+    pick_sandwich.click()
 
     # Press customize sub button
     driver.implicitly_wait(5)
@@ -77,35 +75,32 @@ def order_sub(self):
     # A prompt pops up asking to confirm my location (always) and I click on the button to confirm it
     driver.implicitly_wait(5)
     confirm_store_location_button = '//*[@id="body-wrapper"]/div/div[2]/div/div[3]/div/div/button[2]'
-    driver.find_element(By.XPATH, confirm_store_location_button).click()
+
+    try:
+        confirm_location_element = driver.find_element(By.XPATH, confirm_store_location_button)
+        if confirm_location_element.is_displayed():
+            confirm_location_element.click()
+    except NoSuchElementException:
+        print("No such element, continuing...")
+
+    time.sleep(100)
 
     # Click the checkout button
-    driver.implicitly_wait(5)
+    driver.implicitly_wait(2)
     checkout_button = '//*[@id="two-column-container"]/div[2]/div/div/div[1]/div[2]/button'
     driver.find_element(By.XPATH, checkout_button).click()
 
-    # This is the form for entering the customer's information
-    # I will have a class later that will input custom information for each customer
+    # Input info for pickup
 
-    # First name
-    first_name_input = '//*[@name="FirstName"]'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, first_name_input).send_keys('John')
+    first_name, last_name, email, phone_number = generate_user_info()
 
-    # Last name
-    last_name_input = '//*[@name="LastName"]'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, last_name_input).send_keys('Doe')
+    driver.find_element(By.XPATH, '//*[@name="FirstName"]').send_keys(first_name)
 
-    # Phone number
-    phone_number_input = '//*[@name="ContactPhone"]'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, phone_number_input).send_keys('904-555-5555')
+    driver.find_element(By.XPATH, '//*[@name="LastName"]').send_keys(last_name)
 
-    # Email
-    email_input = '//*[@name="Email"]'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, email_input).send_keys('john.doe@gmail.com')
+    driver.find_element(By.XPATH, '//*[@name="ContactPhone"]').send_keys(phone_number)
+
+    driver.find_element(By.XPATH, '//*[@name="Email"]').send_keys(email)
 
     # Click the next button, unlocking the next form below with the date and time pickers
     next_button = '//*[@id="content_22"]/form/div[3]/button'
@@ -127,8 +122,6 @@ def order_sub(self):
     driver.implicitly_wait(5)
 
     driver.find_element(By.XPATH, value = '//*[contains(@aria-label, "Today")]').click()
-    #driver.find_element(By.XPATH, f'//button[@aria-label="Today: {date_of_order}"]').click()
-                                # Today: Friday, April 7, 2023
 
     # Select the pickup time
     time_dropdown = WebDriverWait(driver, 10).until(
