@@ -5,7 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
+
 from backend.selenium_app.helpers import webdriver_location_input, generate_user_info
+
 from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
 
@@ -13,6 +15,8 @@ from backend.resources import create_webdriver
 
 
 def order_sub(self):
+    start = time.time()
+
     driver = create_webdriver()
 
     # These are two different identifications for the browser to think it's a different browser
@@ -83,7 +87,6 @@ def order_sub(self):
     time.sleep(2)
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
-
     # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
     driver.implicitly_wait(3)
 
@@ -117,7 +120,7 @@ def order_sub(self):
     datepicker = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.datepicker-activate'))
     )
-    time.sleep(1)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
+    time.sleep(2)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
     datepicker.click()
 
 
@@ -171,10 +174,12 @@ def order_sub(self):
     self.ordered_sandwich_name = sandwich_name
     self.time_of_order = pickup_time
 
-    feedback = SubOrder.order_feedback(self)
-    print(feedback)
+    end = time.time()
+
+    print(f"sub order took: {round(end - start)} seconds to run")
 
     return self
+
 
 if __name__ == '__main__':
     order = SubOrder(requested_sub='Publix Italian',
