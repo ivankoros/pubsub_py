@@ -40,10 +40,6 @@ def generate_user_info():
     This function will be used to generate random user info for each customer.
 
     """
-    first_name = ""
-    last_name = ""
-    email = ""
-    phone_number = ""
 
     prefix_options = ['Sir', 'Madam', 'Baron', 'Duchess', 'Count', 'Duke', 'Lord', 'Lady', 'Prince', 'Princess', 'King', 'Queen', '', '', '', '', '', '', '', '', '', '']
     suffix_options = ['McGee', 'Von Humperdink', 'Von Schnitzel', 'The Magnificent', 'The Great', 'The Terrible', 'The Unstoppable', 'The Indomitable', 'The Mighty', 'The Invincible', 'The Amazing', 'The Fabulous'  '', '', '', '', '', '', '', '', '', '']
@@ -51,9 +47,16 @@ def generate_user_info():
     last_names_options = ['Throckmorton', 'Pumpernickel', 'Snickerdoodle', 'Muffinpuff', 'Vanderbilt', 'Rockefeller', 'Bumbershoot', 'McSnazzy', 'Flapdoodle', 'Flibbertigibbet', 'Bamboozle', 'Sassafras']
     email_ending_options = ['@aol.com', '@yahoo.com', '@hotmail.com', '@yandex.com', '@bungus.com', '@saxophone.com']
 
-    first_name.append(f"{random.choice(prefix_options)} {random.choice(first_name_options)}")
-    last_name.append(f"{random.choice(last_names_options)} {random.choice(suffix_options)}")
-    email.append(f"{first_name[1].lower()}.{last_name[1].lower()}{random.choice(email_ending_options)}")
-    phone_number.append(f"{random.randint(100, 999)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}")
+    random_prefix = random.choice(prefix_options)
+    random_suffix = random.choice(suffix_options)
+    random_first_name = random.choice(first_name_options)
+    random_last_name = random.choice(last_names_options)
+
+    first_name = f"{random_prefix} {random_first_name}"
+    last_name = f"{random_last_name} {random_suffix}"
+
+    email = f"{random_first_name.lower()}.{random_last_name.lower()}{random.choice(email_ending_options)}"
+
+    phone_number = f"{random.randint(100, 999)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
 
     return first_name, last_name, email, phone_number
