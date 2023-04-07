@@ -3,11 +3,14 @@ import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from backend.selenium_app.helpers import webdriver_location_input
+from backend.twilio_app.helpers import SubOrder
+from datetime import datetime
 
 from backend.resources import create_webdriver
 import helpers
+
 
 def order_sub(self):
     driver = create_webdriver()
@@ -31,8 +34,8 @@ def order_sub(self):
     # This sets the webdriver to undefined, so that the browser thinks it's not a webdriver
     # Again, changing identity to get past initial automation block
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    time.sleep(random.randint(2, 3))  # Sleep for a couple of seconds before doing anything, important to not get blocked
-
+    time.sleep(
+        random.randint(2, 3))  # Sleep for a couple of seconds before doing anything, important to not get blocked
 
     try:
         accept_button = driver.find_element(By.XPATH,
@@ -53,7 +56,7 @@ def order_sub(self):
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     # Click on the correct sub
-    time.sleep(6)
+    time.sleep(8)
     sandwich = self.requested_sub.strip()
     sandwich_xpath = f'//*[contains(text(),"{sandwich}")]'
     driver.find_element(By.XPATH, sandwich_xpath).click()
@@ -67,7 +70,7 @@ def order_sub(self):
     driver.implicitly_wait(5)
     add_to_cart_button = '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button'
     driver.find_element(By.XPATH, add_to_cart_button).click()
-
+    time.sleep(1)
     # Instead of going through several more buttons, I go to this link below, which puts me in the checkout page without any more clicks
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
@@ -109,42 +112,50 @@ def order_sub(self):
     driver.implicitly_wait(5)
     driver.find_element(By.XPATH, next_button).click()
 
-
     # Open up the date picker (calendar-style)
     driver.implicitly_wait(5)
     driver.find_element(By.CSS_SELECTOR, '.datepicker-activate').click()
     time.sleep(2)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
 
     # The date is easy to enter, as it is a calendar-style picker and each date has a unique label which we can use to find it
-    # Pick a date
     date_of_order = self.date_of_order
+    """
+    This date is currently not being used, it's just selecting the first date in the calendar, which is today.
+    I will add functionality to select a date in the future, but for now, it's just today.
+    
+    """
     driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, f'//button[@aria-label="{date_of_order}"]').click()
 
-    time.sleep(15)
-    # # Select time dropdown
-    # dropdown = WebDriverWait(driver, 10).until(
-    #     EC.element_to_be_clickable((By.ID, "input_pickupTime93"))
-    # )
-    # dropdown.click()
-    #
-    # # The time is also easy to enter, as it is a dropdown-style picker and each time has a unique value which we can use to find it
-    # pickup_time = "2023-03-29T09:45:00"
-    # driver.find_element(By.XPATH, f'//option[@value="{pickup_time}"]').click()
-    #
-    # # Click the next button, unlocking the next form below with the payment information
-    # next_button = '//*[@id="content_26"]/form/div[3]/div/button'
-    # driver.implicitly_wait(5)
-    # driver.find_element(By.XPATH, next_button).click()
-    #
-    # # This is the payment information section, where instead of credit card info, I choose "pay in store"
-    # driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
+    driver.find_element(By.XPATH, value = '//*[contains(@aria-label, "Today")]').click()
+    #driver.find_element(By.XPATH, f'//button[@aria-label="Today: {date_of_order}"]').click()
+                                # Today: Friday, April 7, 2023
+
+    # Select the pickup time
+    time_dropdown = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//select[@name="pickupTime"] '))
+    )
+    time_dropdown.click()
+
+    select = Select(time_dropdown)
+    select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
+    time.sleep(5)
+
+    # Click the next button, unlocking the next form below with the payment information
+    next_button = '//*[@id="content_26"]/form/div[3]/div/button'
+    driver.implicitly_wait(5)
+    driver.find_element(By.XPATH, next_button).click()
+
+    # This is the payment information section, where instead of credit card info, I choose "pay in store"
+    driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
     #
     # # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
-    #
     # # Quit the driver
+    time.sleep(10)
     driver.quit()
 
 
 if __name__ == '__main__':
-    order_sub()
+    order = SubOrder(requested_sub='Publix Italian',
+                     store_name='St. John\'s Town Center',
+                     date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"))
+    order_sub(order)
