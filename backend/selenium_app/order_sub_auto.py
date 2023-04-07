@@ -57,6 +57,7 @@ def order_sub(self):
     pick_sandwich = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, f'//*[contains(text(),"{self.requested_sub.strip()}")]'))
     )
+    sandwich_name = pick_sandwich.text
     pick_sandwich.click()
 
     # Press customize sub button
@@ -82,18 +83,12 @@ def order_sub(self):
         if confirm_location_element.is_displayed():
             confirm_location_element.click()
     except NoSuchElementException:
-        print("No such element, continuing...")
-
-    # time.sleep(100)
-    #
-    # # Click the checkout button
-    # driver.implicitly_wait(2)
-    # checkout_button = '//*[@id="two-column-container"]/div[2]/div/div/div[1]/div[2]/button'
-    # driver.find_element(By.XPATH, checkout_button).click()
+        print("Confirm location element not found, continuing...")
 
     # Input info for pickup
 
     first_name, last_name, email, phone_number = generate_user_info()
+    print(first_name, last_name, email, phone_number)
 
     driver.find_element(By.XPATH, '//*[@name="FirstName"]').send_keys(first_name)
 
@@ -122,7 +117,7 @@ def order_sub(self):
     """
     driver.implicitly_wait(5)
 
-    driver.find_element(By.XPATH, value = '//*[contains(@aria-label, "Today")]').click()
+    driver.find_element(By.XPATH, value='//*[contains(@aria-label, "Today")]').click()
 
     # Select the pickup time
     time_dropdown = WebDriverWait(driver, 10).until(
@@ -142,11 +137,23 @@ def order_sub(self):
     # This is the payment information section, where instead of credit card info, I choose "pay in store"
 
     driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
-    #
-    # # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
-    # # Quit the driver
-    time.sleep(10)
+    print("Payment info entered successfully")
+
+    # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
+
     driver.quit()
+    print("Driver quit and order submitted successfully")
+
+    order_feedback = {
+        'first_name': first_name,
+        'last_name': last_name,
+        'store_name': official_location_name,
+        'sandwich_name': sandwich_name
+    }
+
+    print(f"Order feedback: {order_feedback}")
+
+    return order_feedback
 
 
 if __name__ == '__main__':
