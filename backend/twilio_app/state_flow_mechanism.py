@@ -74,11 +74,14 @@ def default_action(message, *args):
     else:
         return 'default', state_info['default']['text_response']
 
-def order_sub_action(body, *args):
+def order_sub_action(body, session, user, *args):
 
     order = SubOrder(
         requested_sub=body,
-        store_name="St Johns Town Center",
+        # Query store name from database vs user's phone number
+        store_name=session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_address,
+        date_of_order=datetime.today().date().strftime("%A, %B %d, %Y")
+
     )
 
     match body:
