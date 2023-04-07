@@ -44,13 +44,13 @@ def order_sub(self):
         if wait.until(EC.element_to_be_clickable((By.XPATH,
                                                   '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]'))):
             accept_button.click()
-    except:
+    except NoSuchElementException:
         pass
 
     # Store location input
     location = self.store_name.strip()
     official_location_name = webdriver_location_input(driver, location)
-    print(official_location_name)
+    print(f"location name: {official_location_name}")
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     # Click on the correct sub
@@ -59,6 +59,7 @@ def order_sub(self):
     )
     sandwich_name = pick_sandwich.text
     pick_sandwich.click()
+    print(f"Selected sandwich: {sandwich_name}")
 
     # Press customize sub button
     driver.implicitly_wait(5)
@@ -69,12 +70,12 @@ def order_sub(self):
     driver.implicitly_wait(5)
     add_to_cart_button = '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button'
     driver.find_element(By.XPATH, add_to_cart_button).click()
-    time.sleep(1)
+    time.sleep(2)
 
     # Instead of going through several more buttons, I go to this link below, which puts me in the checkout page without any more clicks
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
-    # A prompt pops up asking to confirm my location (always) and I click on the button to confirm it
+    # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
     driver.implicitly_wait(3)
     confirm_store_location_button = '//*[@id="body-wrapper"]/div/div[2]/div/div[3]/div/div/button[2]'
 
@@ -126,8 +127,12 @@ def order_sub(self):
     time_dropdown.click()
 
     select = Select(time_dropdown)
+
+    all_times = driver.find_elements(By.XPATH, '//span[@class="time-item"]')
+    pickup_time = all_times[1].text
+    print(pickup_time)
+
     select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
-    time.sleep(5)
 
     # Click the next button, unlocking the next form below with the payment information
     next_button = '//*[@id="content_26"]/form/div[3]/div/button'
@@ -144,16 +149,18 @@ def order_sub(self):
     driver.quit()
     print("Driver quit and order submitted successfully")
 
-    order_feedback = {
-        'first_name': first_name,
-        'last_name': last_name,
-        'store_name': official_location_name,
-        'sandwich_name': sandwich_name
-    }
+    # Update the SubOrder object with the order feedback
 
-    print(f"Order feedback: {order_feedback}")
+    self.first_name = first_name
+    self.last_name = last_name
+    self.store_name = official_location_name
+    self.ordered_sandwich_name = sandwich_name
+    self.time_of_order = pickup_time
 
-    return order_feedback
+    feedback = SubOrder.order_feedback(self)
+    print(feedback)
+
+    return self
 
 
 if __name__ == '__main__':
