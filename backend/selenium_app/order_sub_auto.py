@@ -48,7 +48,7 @@ def order_sub(self):
     # Location chooser
     # click on the text box and type in the location
 
-    location = "St. John\'s Town Center"
+    location = self.store_name.strip()
     webdriver_location_input(driver, location)
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
@@ -57,13 +57,6 @@ def order_sub(self):
     sandwich = self.requested_sub.strip()
     sandwich_xpath = f'//*[contains(text(),"{sandwich}")]'
     driver.find_element(By.XPATH, sandwich_xpath).click()
-
-    # Start ordering sub
-    time.sleep(1000)
-    # Press build your own sub button on specific sub (which I've yet to configure to be customizable)
-    build_sub_button = '//*[@id="main"]/div[2]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div[4]/div/div/a'
-    driver.implicitly_wait(10)
-    driver.find_element(By.XPATH, build_sub_button).click()
 
     # Press customize sub button
     driver.implicitly_wait(5)
@@ -120,36 +113,36 @@ def order_sub(self):
     # Open up the date picker (calendar-style)
     driver.implicitly_wait(5)
     driver.find_element(By.CSS_SELECTOR, '.datepicker-activate').click()
-    time.sleep(2)  # This time sleep is neccessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
+    time.sleep(2)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
 
     # The date is easy to enter, as it is a calendar-style picker and each date has a unique label which we can use to find it
     # Pick a date
-    date_of_order = "Wednesday, March 29, 2023"
+    date_of_order = self.date_of_order
     driver.implicitly_wait(5)
     driver.find_element(By.XPATH, f'//button[@aria-label="{date_of_order}"]').click()
 
-
-    # Select time dropdown
-    dropdown = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.ID, "input_pickupTime93"))
-    )
-    dropdown.click()
-
-    # The time is also easy to enter, as it is a dropdown-style picker and each time has a unique value which we can use to find it
-    pickup_time = "2023-03-29T09:45:00"
-    driver.find_element(By.XPATH, f'//option[@value="{pickup_time}"]').click()
-
-    # Click the next button, unlocking the next form below with the payment information
-    next_button = '//*[@id="content_26"]/form/div[3]/div/button'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, next_button).click()
-
-    # This is the payment information section, where instead of credit card info, I choose "pay in store"
-    driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
-
-    # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
-
-    # Quit the driver
+    time.sleep(15)
+    # # Select time dropdown
+    # dropdown = WebDriverWait(driver, 10).until(
+    #     EC.element_to_be_clickable((By.ID, "input_pickupTime93"))
+    # )
+    # dropdown.click()
+    #
+    # # The time is also easy to enter, as it is a dropdown-style picker and each time has a unique value which we can use to find it
+    # pickup_time = "2023-03-29T09:45:00"
+    # driver.find_element(By.XPATH, f'//option[@value="{pickup_time}"]').click()
+    #
+    # # Click the next button, unlocking the next form below with the payment information
+    # next_button = '//*[@id="content_26"]/form/div[3]/div/button'
+    # driver.implicitly_wait(5)
+    # driver.find_element(By.XPATH, next_button).click()
+    #
+    # # This is the payment information section, where instead of credit card info, I choose "pay in store"
+    # driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
+    #
+    # # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
+    #
+    # # Quit the driver
     driver.quit()
 
 
