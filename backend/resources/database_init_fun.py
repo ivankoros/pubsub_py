@@ -65,7 +65,7 @@ def initialize_database():
     db_name = os.getenv("DB_NAME")
     db_url = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
 
-    engine = create_engine(db_url, echo=True)
+    engine = create_engine(db_url, echo=False)
     Base.metadata.create_all(engine)
 
     session_maker = sessionmaker(bind=engine)
