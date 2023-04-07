@@ -3,7 +3,9 @@ from flask import Flask, Response, request
 
 from backend.resources import SubDeal
 from backend.resources import Users
-from helpers import TextResponses
+from helpers import TextResponses, SubOrder
+from backend.selenium_app import order_sub
+
 
 # Find/initialize the user
 def get_user(session):
@@ -18,6 +20,7 @@ def get_user(session):
         session.commit()
     return user
 
+
 def start_action(*args):
     # Switches the user to the get_name state automatically
     # Might remove this later and just have the user initialized
@@ -31,6 +34,7 @@ def get_name_action(body, session, user):
     session.commit()
     return 'get_store_location', state_info['get_store_location']['text_response']
 
+
 def get_store_location_action(body, session, user):
     # This will later be replaced with a function that gets the user's geolocation
     #   and returns the nearest store using the find_nearest_stores function
@@ -40,6 +44,7 @@ def get_store_location_action(body, session, user):
     user.selected_store_address = body
     session.commit()
     return 'get_sale', state_info['get_sale']['text_response']
+
 
 def get_sale_action(body, session, *args):
     # Check if there are any sales today and return the corresponding message
@@ -54,14 +59,34 @@ def get_sale_action(body, session, *args):
             message = TextResponses().get_response("no_sale")
         case _:
             message = f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}" \
-                        f" are on sale today!"
+                      f" are on sale today!"
 
     # Go to the default state
     return 'default', message
 
-def default_action(*args):
+
+def default_action(message, *args):
     # If the user input is recognized, initialize the default state
-    return 'default', state_info['default']['text_response']
+    if "order" in message:
+        return 'order_sub', "You triggered the order sub action state." \
+                            " Say 'Italian sub' to order the Italian sub." \
+                            " Say anything else to go back to the default state."
+    else:
+        return 'default', state_info['default']['text_response']
+
+def order_sub_action(body, *args):
+
+    order = SubOrder(
+        requested_sub=body,
+        store_name="St Johns Town Center",
+    )
+
+    match body:
+        case 'Publix Italian':
+            order_sub(order)
+            return 'order_sub', "you're in the ordr sub action state"
+        case _:
+            return 'default', "you're back to the default state"
 
 
 # This dictionary contains the state information for the state machine
@@ -84,6 +109,11 @@ state_info = {
     'get_sale': {
         'text_response': TextResponses().get_response("help"),
         'action': get_sale_action,
+        'next_states': ['default', 'order_sub']
+    },
+    'order_sub': {
+        'text_response:': TextResponses().get_response("order_sub"),
+        'action': order_sub_action,
         'next_states': ['default']
     },
     'default': {
