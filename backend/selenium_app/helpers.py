@@ -81,4 +81,4 @@ def generate_user_info():
     # This is an unused, but valid phone number
     phone_number = '321-556-0291'
 
-    return first_name, last_name, email, phone_number
+    return first_name.strip(), last_name.strip(), email.strip(), phone_number.strip()
