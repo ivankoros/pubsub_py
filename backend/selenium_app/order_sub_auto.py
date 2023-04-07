@@ -4,11 +4,12 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from backend.selenium_app.helpers import webdriver_location_input
 
 from backend.resources import create_webdriver
+import helpers
 
-
-def order_sub():
+def order_sub(self):
     driver = create_webdriver()
 
     # These are two different identifications for the browser to think it's a different browser
@@ -32,6 +33,7 @@ def order_sub():
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     time.sleep(random.randint(2, 3))  # Sleep for a couple of seconds before doing anything, important to not get blocked
 
+
     try:
         accept_button = driver.find_element(By.XPATH,
                                             '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]')
@@ -42,26 +44,22 @@ def order_sub():
     except:
         pass
 
+    print('made it past the except button')
     # Location chooser
     # click on the text box and type in the location
-    from helpers import webdriver_location_input
 
     location = "St. John\'s Town Center"
     webdriver_location_input(driver, location)
-
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
-    """Choosing store location
-    
-    This code above is needed because we initially block our location services.
-    The input for choosing the location pops up automatically, so we click on the text box, enter an address, and press enter.
-    The store elements are easy to locate because each has their own unique labels (eg. "Choose St. John's Town Center as your store").
-    So, we use the address variable to find the correct store, wait for it to load, and then click on it. This exits the address prompt.
-    
-    """
+    # Click on the correct sub
+    time.sleep(6)
+    sandwich = self.requested_sub.strip()
+    sandwich_xpath = f'//*[contains(text(),"{sandwich}")]'
+    driver.find_element(By.XPATH, sandwich_xpath).click()
 
     # Start ordering sub
-
+    time.sleep(1000)
     # Press build your own sub button on specific sub (which I've yet to configure to be customizable)
     build_sub_button = '//*[@id="main"]/div[2]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div[4]/div/div/a'
     driver.implicitly_wait(10)
