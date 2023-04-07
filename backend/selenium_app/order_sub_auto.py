@@ -70,24 +70,32 @@ def order_sub(self):
     driver.implicitly_wait(5)
     add_to_cart_button = '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button'
     driver.find_element(By.XPATH, add_to_cart_button).click()
-    time.sleep(2)
 
-    # Instead of going through several more buttons, I go to this link below, which puts me in the checkout page without any more clicks
+
+    """ Go directly to check out by going to this link
+    Instead of clicking review order, confirming store, and then clicking the checkout button,
+    after pressing "add to cart" you can go directly to the checkout page by going to this link
+    
+    However, because this usually needs to load, I need a dedicated time.sleep to wait for the 
+    sub to be added to the cart which we're going to. Otherwise, the sub won't be in the cart when
+    we go to the checkout page.
+    """
+    time.sleep(2)
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
+
 
     # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
     driver.implicitly_wait(3)
-    confirm_store_location_button = '//*[@id="body-wrapper"]/div/div[2]/div/div[3]/div/div/button[2]'
 
     try:
-        confirm_location_element = driver.find_element(By.XPATH, confirm_store_location_button)
+        confirm_location_element = driver.find_element(By.XPATH,
+                                                       '//*[@id="body-wrapper"]/div/div[2]/div/div[3]/div/div/button[2]')
         if confirm_location_element.is_displayed():
             confirm_location_element.click()
     except NoSuchElementException:
         print("Confirm location element not found, continuing...")
 
     # Input info for pickup
-
     first_name, last_name, email, phone_number = generate_user_info()
     print(first_name, last_name, email, phone_number)
 
@@ -100,14 +108,18 @@ def order_sub(self):
     driver.find_element(By.XPATH, '//*[@name="Email"]').send_keys(email)
 
     # Click the next button, unlocking the next form below with the date and time pickers
-    next_button = '//*[@id="content_22"]/form/div[3]/button'
-    driver.implicitly_wait(5)
-    driver.find_element(By.XPATH, next_button).click()
+    next_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="content_22"]/form/div[3]/button'))
+    )
+    next_button.click()
 
     # Open up the date picker (calendar-style)
-    driver.implicitly_wait(5)
-    driver.find_element(By.CSS_SELECTOR, '.datepicker-activate').click()
+    datepicker = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, '.datepicker-activate'))
+    )
     time.sleep(1)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
+    datepicker.click()
+
 
     # The date is easy to enter, as it is a calendar-style picker and each date has a unique label which we can use to find it
     """
@@ -127,11 +139,11 @@ def order_sub(self):
 
     select = Select(time_dropdown)
 
-    pickup_time = select.options[1]  # Get the first available time slot (index 0 is empty)
+    first_time_option = select.options[1]  # Get the first available time slot (index 0 is empty)
 
     # Use JavaScript to get the text content of the first time option
-    first_time_text = driver.execute_script("return arguments[0].textContent", pickup_time).strip()
-    print(f"First pickup time: {first_time_text}")
+    pickup_time = driver.execute_script("return arguments[0].textContent", first_time_option).strip()
+    print(f"First pickup time: {pickup_time}")
 
     select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
 
@@ -163,7 +175,6 @@ def order_sub(self):
     print(feedback)
 
     return self
-
 
 if __name__ == '__main__':
     order = SubOrder(requested_sub='Publix Italian',
