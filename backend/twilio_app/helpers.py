@@ -51,11 +51,11 @@ class SubOrder:
         self.time_of_order = None
 
     def order_feedback(self):
-        return f"Great, your order for {self.ordered_sandwich_name} has been placed at {self.store_name} " \
+        return f"Great, your order for the {self.ordered_sandwich_name} " \
                f"is confirmed for pickup at {self.store_name} " \
                f"at {self.time_of_order} today. " \
-               f"You'll be able to pick it up under the name {self.first_name} {self.last_name} " \
-               f"Enjoy your sub!"
+               f"It'll be ready under the name {self.first_name} {self.last_name}.\n" \
+               f"Enjoy your sub! :)"
 
     def __repr__(self):
         return f"Name of sub: {self.requested_sub}\n" \
