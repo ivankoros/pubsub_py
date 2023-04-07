@@ -34,29 +34,51 @@ def webdriver_location_input(driver, location):
 
     return official_location_name
 
+
 def generate_user_info():
     """Generate random user info
 
-    This function will be used to generate random user info for each customer.
+    This function will generate random user info for each customer.
+    The pickup order requires a first name, last name, phone number, and email,
+    yet none of this is used to update or inform the customer of their order, besides
+    their name which is printed on the receipt that's stapled to the bag.
+
+    So, I've chosen to randomly generate some funny names and emails so the user
+    doesn't have to put any of their own information in. This is also a good way to
+    test the app with different names and emails to make sure it's working properly.
 
     """
 
-    prefix_options = ['Sir', 'Madam', 'Baron', 'Duchess', 'Count', 'Duke', 'Lord', 'Lady', 'Prince', 'Princess', 'King', 'Queen', '', '', '', '', '', '', '', '', '', '']
-    suffix_options = ['McGee', 'Von Humperdink', 'Von Schnitzel', 'The Magnificent', 'The Great', 'The Terrible', 'The Unstoppable', 'The Indomitable', 'The Mighty', 'The Invincible', 'The Amazing', 'The Fabulous'  '', '', '', '', '', '', '', '', '', '']
-    first_name_options = ['Barnaby', 'Balthazar', 'Clementine', 'Esmeralda', 'Finnegan', 'Gulliver', 'Horatio', 'Isadora', 'Jasper', 'Lysander', 'Magnolia', 'Octavius']
-    last_names_options = ['Throckmorton', 'Pumpernickel', 'Snickerdoodle', 'Muffinpuff', 'Vanderbilt', 'Rockefeller', 'Bumbershoot', 'McSnazzy', 'Flapdoodle', 'Flibbertigibbet', 'Bamboozle', 'Sassafras']
+    prefix_options = ['Sir', 'Sir ', 'Grand Duke', 'Madam', 'Baron', 'Duchess', 'Count', 'Duke', 'Lord', 'Lady',
+                      'Prince', 'Princess', 'King', 'Queen', '', '', '', '', '', '', '', '', '', '']
+
+    suffix_options = ['McGee', 'Yeo', 'Von Humperdink', 'Von Schnitzel', 'The Magnificent', 'The Great', 'The Terrible',
+                      'The Unstoppable', 'The Indomitable', 'The Invincible', '', '', '', '', '', '', '', '', '', '',
+                      '']
+
+    first_name_options = ['Wilfred', 'Skipps', 'Rigby', 'Vlad', 'Derwin', 'Yertle', 'Balthazar', 'Bartholomew', 'Looie',
+                          'Zooie', 'Finnegan', 'Gulliver', 'Horatio', 'Isadora', 'Jasper', 'Lysander', 'Jo-Jo', 'Mack',
+                          'Morris', 'Sneelock', 'Rolf', 'Zinn-a-zu', 'Harry', 'Herbie', 'Hawtch', 'Nutch',
+                          'Sneedle', 'Umbus', 'Wump', 'Nook', 'Poozer', 'Luke', 'Foona', 'Norval', 'Doubt-trout']
+
+    last_name_options = ['McBean', 'Vlad-i-Koff', 'Katz', 'Muffinpuff', 'Katzen-bein', 'Cubbins', 'o’Donald o’Dell',
+                         'McSnazzy', 'Flapdoodle', 'Flibbertigibbet', 'McGrew', 'Who', 'Bar-ba-loots',
+                         'McFuzz', 'Mulvaney', 'McCave', 'Wickersham', 'McGurk', 'Joat', 'De Breeze', 'Yookero',
+                         'Sard', 'Potter', 'Haddow', 'Hart', 'Hawtch-Hawtcher','Gump', 'Fish', 'Lagoona']
+
     email_ending_options = ['@aol.com', '@yahoo.com', '@hotmail.com', '@yandex.com', '@bungus.com', '@saxophone.com']
 
     random_prefix = random.choice(prefix_options)
     random_suffix = random.choice(suffix_options)
     random_first_name = random.choice(first_name_options)
-    random_last_name = random.choice(last_names_options)
+    random_last_name = random.choice(last_name_options)
 
     first_name = f"{random_prefix} {random_first_name}"
     last_name = f"{random_last_name} {random_suffix}"
 
     email = f"{random_first_name.lower()}.{random_last_name.lower()}{random.choice(email_ending_options)}"
 
-    phone_number = f"{random.randint(100, 999)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
+    # This is an unused, but valid phone number
+    phone_number = '321-556-0291'
 
     return first_name, last_name, email, phone_number
