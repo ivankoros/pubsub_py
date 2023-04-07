@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
+import random
 
 def webdriver_location_input(driver, location):
     """Choosing store location
@@ -33,3 +33,27 @@ def webdriver_location_input(driver, location):
     official_location_name = header_element.text
 
     return official_location_name
+
+def generate_user_info():
+    """Generate random user info
+
+    This function will be used to generate random user info for each customer.
+
+    """
+    first_name = ""
+    last_name = ""
+    email = ""
+    phone_number = ""
+
+    prefix_options = ['Sir', 'Madam', 'Baron', 'Duchess', 'Count', 'Duke', 'Lord', 'Lady', 'Prince', 'Princess', 'King', 'Queen', '', '', '', '', '', '', '', '', '', '']
+    suffix_options = ['McGee', 'Von Humperdink', 'Von Schnitzel', 'The Magnificent', 'The Great', 'The Terrible', 'The Unstoppable', 'The Indomitable', 'The Mighty', 'The Invincible', 'The Amazing', 'The Fabulous'  '', '', '', '', '', '', '', '', '', '']
+    first_name_options = ['Barnaby', 'Balthazar', 'Clementine', 'Esmeralda', 'Finnegan', 'Gulliver', 'Horatio', 'Isadora', 'Jasper', 'Lysander', 'Magnolia', 'Octavius']
+    last_names_options = ['Throckmorton', 'Pumpernickel', 'Snickerdoodle', 'Muffinpuff', 'Vanderbilt', 'Rockefeller', 'Bumbershoot', 'McSnazzy', 'Flapdoodle', 'Flibbertigibbet', 'Bamboozle', 'Sassafras']
+    email_ending_options = ['@aol.com', '@yahoo.com', '@hotmail.com', '@yandex.com', '@bungus.com', '@saxophone.com']
+
+    first_name.append(f"{random.choice(prefix_options)} {random.choice(first_name_options)}")
+    last_name.append(f"{random.choice(last_names_options)} {random.choice(suffix_options)}")
+    email.append(f"{first_name[1].lower()}.{last_name[1].lower()}{random.choice(email_ending_options)}")
+    phone_number.append(f"{random.randint(100, 999)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}")
+
+    return first_name, last_name, email, phone_number
