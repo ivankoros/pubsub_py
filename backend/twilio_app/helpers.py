@@ -44,6 +44,19 @@ class SubOrder:
         self.store_name = store_name
         self.date_of_order = date_of_order
 
+    # Order confirmation feedback
+        self.first_name = None
+        self.last_name = None
+        self.ordered_sandwich_name = None
+        self.time_of_order = None
+
+    def order_feedback(self):
+        return f"Great, your order for {self.ordered_sandwich_name} has been placed at {self.store_name} " \
+               f"is confirmed for pickup at {self.store_name} " \
+               f"at {self.time_of_order} today. " \
+               f"You'll be able to pick it up under the name {self.first_name} {self.last_name} " \
+               f"Enjoy your sub!"
+
     def __repr__(self):
         return f"Name of sub: {self.requested_sub}\n" \
                f"Store location: {self.store_name} \n" \
