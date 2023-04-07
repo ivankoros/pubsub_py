@@ -30,12 +30,21 @@ class TextResponses:
                             "on sale today",
                             "on sale right now",
                             "today's deals",
-                            "today's deal"]
+                            "today's deal"],
+            "order_sub": ["You would like to order a sub.",
+                          "You would like to order a sub."]
         }
 
     def get_response(self, response):
         return random.choice(self.text_responses[response])
 
+class SubOrder:
+    def __init__(self, requested_sub, store_name):
+        self.requested_sub = requested_sub
+        self.store_name = store_name
+
+    def __repr__(self):
+        return f"Name: {self.requested_sub}\nStore: {self.store_name}"
 
 # This is the function that I'm trying to test that takes in the geolocation
 # and returns the nearest stores, but I'm not sure how to get the geolocation both
@@ -57,7 +66,7 @@ def find_nearest_stores(location, keyword="Publix", result_count=3):
 
 
 # All possible customization tops for Publix subs
-customizations = {
+all_customizations = {
     "size": {
         "half": "Half",
         "whole": "Whole"
