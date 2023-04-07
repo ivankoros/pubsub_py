@@ -39,12 +39,15 @@ class TextResponses:
         return random.choice(self.text_responses[response])
 
 class SubOrder:
-    def __init__(self, requested_sub, store_name):
+    def __init__(self, requested_sub, store_name, date_of_order):
         self.requested_sub = requested_sub
         self.store_name = store_name
+        self.date_of_order = date_of_order
 
     def __repr__(self):
-        return f"Name: {self.requested_sub}\nStore: {self.store_name}"
+        return f"Name of sub: {self.requested_sub}\n" \
+               f"Store location: {self.store_name} \n" \
+               f"Date of order: {self.date_of_order}"
 
 # This is the function that I'm trying to test that takes in the geolocation
 # and returns the nearest stores, but I'm not sure how to get the geolocation both
