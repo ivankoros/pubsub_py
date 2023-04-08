@@ -56,11 +56,12 @@ class SubOrder:
         self.phone_number = phone_number
 
     def __str__(self):
-        return f"Great, your order for the {self.requested_sub} " \
-               f"is confirmed for pickup at {self.store_name} " \
-               f"at {self.time_of_order} today. " \
-               f"It'll be ready under the name {self.first_name} {self.last_name}.\n" \
-               f"Enjoy your sub! :)"
+        return [f"Great, your order for the {self.requested_sub} "
+                f"is confirmed for pickup at {self.store_name} " 
+                f"at {self.time_of_order} today. "
+                f"It'll be ready under the name {self.first_name} {self.last_name}.",
+
+                f"Enjoy your sub! :)"]
 
 
 class TwilioTexts:
@@ -95,10 +96,6 @@ def generate_user_info():
     test the app with different names and emails to make sure it's working properly.
 
     """
-
-    prefix_options = ['Sir', 'Sir ', 'Grand Duke', 'Madam', 'Baron', 'Duchess', 'Count', 'Duke', 'Lord', 'Lady',
-                      'Prince', 'Princess', 'King', 'Queen', '', '', '', '', '', '', '', '', '', '']
-
     suffix_options = ['McGee', 'Yeo', 'Von Humperdink', 'Von Schnitzel', 'The Magnificent', 'The Great', 'The Terrible',
                       'The Unstoppable', 'The Indomitable', 'The Invincible', '', '', '', '', '', '', '', '', '', '',
                       '']
@@ -115,12 +112,11 @@ def generate_user_info():
 
     email_ending_options = ['@aol.com', '@yahoo.com', '@hotmail.com', '@yandex.com', '@bungus.com', '@saxophone.com']
 
-    random_prefix = random.choice(prefix_options)
     random_suffix = random.choice(suffix_options)
     random_first_name = random.choice(first_name_options)
     random_last_name = random.choice(last_name_options)
 
-    first_name = f"{random_prefix} {random_first_name}"
+    first_name = f"{random_first_name}"
     last_name = f"{random_last_name} {random_suffix}"
 
     email = f"{random_first_name.lower()}.{random_last_name.lower()}{random.choice(email_ending_options)}"
@@ -130,12 +126,11 @@ def generate_user_info():
 
     return first_name.strip(), last_name.strip(), email.strip(), phone_number.strip()
 
-
-def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_interval = 5):
+def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_interval=5):
     local_tz = pytz.timezone(timezone)
     current_time = datetime.now(local_tz)
     nearest_time = current_time + timedelta(minutes=(length_interval - current_time.minute % update_interval))
-    formatted_time = nearest_time.strftime("%l:%M %p").lstrip()
+    formatted_time = nearest_time.strftime("%I:%M %p").lstrip().replace('0', '')
 
     return formatted_time
 
