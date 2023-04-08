@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 from flask import Flask, Response, request
-
+from fuzzywuzzy import process
 from backend.resources import SubDeal
 from backend.resources import Users
 from backend.twilio_app.helpers import TextResponses, SubOrder, all_sandwiches
@@ -76,11 +76,27 @@ def default_action(message, *args):
         return 'default', state_info['default']['text_response']
 
 def order_sub_action(body, session, user, *args):
+# Order a sub
 
-    if body in all_sandwiches:
+    def find_closest_sandwich(user_input, all_sandwiches):
+        # Find the best match using fuzzy string matching
+        best_match, score = process.extractOne(user_input, all_sandwiches)
+
+        # Set a threshold for a minimum score to consider it a match
+        match_threshold = 70
+
+        if score >= match_threshold:
+            return best_match
+        else:
+            return "No match found"
+
+    if 'exit' in body:
+        # Find the closest match to the user's input
+        sandwich = find_closest_sandwich(body, all_sandwiches)
+        print(f"most likely sub: {sandwich}")
 
         order = SubOrder(
-            requested_sub=body,
+            requested_sub=sandwich,
             # Query store name from database vs user's phone number
             store_name=session.query(Users).filter(
                 Users.phone_number == user.phone_number).first().selected_store_address,
@@ -88,9 +104,9 @@ def order_sub_action(body, session, user, *args):
 
         )
 
-        order = order_sub(order)
+        #order = order_sub(order)
 
-        return 'default', order.__str__()
+        return 'order_sub', f'sounds like you want a: {sandwich}' #order.__str__()
     if body == "exit":
         return 'default', "you said exit, you're now in the default sate. say 'order' to order a sub."
     else:
