@@ -1,6 +1,8 @@
 import time
+import asyncio
 from datetime import datetime, timedelta
 from flask import Flask, Response, request
+from concurrent.futures import ThreadPoolExecutor
 
 from backend.resources import SubDeal
 from backend.resources import Users
@@ -28,7 +30,10 @@ def start_action(*args):
     # Switches the user to the get_name state automatically
     # Might remove this later and just have the user initialized
     #   into the get_name state
-    return 'get_name', state_info['get_name']['text_response']
+    message_back = state_info['get_name']['text_response']
+    message_back.append(f"Hey, welcome to Pubsub Py!")
+
+    return 'get_name', message_back
 
 
 def get_name_action(body, session, user):
@@ -78,7 +83,7 @@ def default_action(message, *args):
 def order_sub_action(body, session, user, *args):
 
     if 'exit' in body:
-        return 'default', "you said exit, you're now in the default sate. say 'order' to order a sub."
+        return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
     if find_closest_sandwich(body, all_sandwiches) != "No match found":
 
@@ -98,13 +103,20 @@ def order_sub_action(body, session, user, *args):
             last_name=last_name,
             email=email,
             phone_number=phone_number
-
         )
+
+        def submit_order():
+            order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_in_executor(ThreadPoolExecutor(1), submit_order)
+        loop.close()
 
         return 'order_sub', SubOrder.__str__(order)
     else:
-        return 'order_sub', f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
-                            " default state"
+        return 'order_sub', [f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
+                            "default state"]
 
 
 # This dictionary contains the state information for the state machine
