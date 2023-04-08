@@ -110,13 +110,23 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     pick_sandwich = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, xpath_query))
     )
+
+    sandwich_href = (pick_sandwich.get_attribute("href"))
     sandwich_name = pick_sandwich.text
-    pick_sandwich.click()
+
+    print(f"sandwich name: {sandwich_name}"
+          f"sandwhich link: {sandwich_href}")
+
+    driver.get(sandwich_href)
 
     # Press customize sub button
-    driver.implicitly_wait(5)
-    customize_sub_button = '//*[@id="product-details-form-add-to-order"]/div[2]/div[2]/div/a/span'
-    driver.find_element(By.XPATH, customize_sub_button).click()
+    customize_sub_button = driver.find_element(By.XPATH, '//*[@id="customize-btn"]')
+    customize_href = customize_sub_button.get_attribute("href")
+    print(f"customize sub button href: {customize_href}")
+    driver.get(customize_href)
+
+    whole_element_xpath = "//p[contains(text(), 'Whole')]/ancestor::label"
+    driver.find_element(By.XPATH, whole_element_xpath).click()
 
     # Press add to cart button
     driver.implicitly_wait(5)
@@ -224,9 +234,15 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
 
 if __name__ == '__main__':
-    order = SubOrder(requested_sub='Boar\'s Head Ham Sub',
+    order = SubOrder(requested_sub='Publix Chicken Tender Sub',
                      store_name='St. John\'s Town Center',
-                     date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"))
+                     date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"),
+                     time_of_order='12:00 PM',
+                     first_name='John',
+                     last_name='Doe',
+                     phone_number='(555) 555-5555',
+                     email='John.Doe@gmail.com')
+
     order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
 
     print(diagnostic)
