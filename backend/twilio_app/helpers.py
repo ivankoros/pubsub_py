@@ -61,6 +61,24 @@ class SubOrder:
                f"It'll be ready under the name {self.first_name} {self.last_name}.\n" \
                f"Enjoy your sub! :)"
 
+class TwilioTexts:
+    def __init__(self, phone_number, message):
+        self.phone_number = phone_number
+        self.message = message
+
+    def twilio_send_msg(self):
+        account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+        auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+
+        messaging_service_sid = os.getenv("TWILIO_MESSAGING_SERVICE_SID")
+
+        client = Client(account_sid, auth_token)
+
+        client.messages.create(
+            messaging_service_sid=messaging_service_sid,
+            body=self.message,
+            to=self.phone_number)
+
 
 
 # This is the function that I'm trying to test that takes in the geolocation
