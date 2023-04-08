@@ -129,6 +129,12 @@ def generate_user_info():
 
     return first_name.strip(), last_name.strip(), email.strip(), phone_number.strip()
 
+def nearest_interval_time(timezone='US/Eastern', interval=5):
+    local_tz = pytz.timezone(timezone)
+    current_time = datetime.now(local_tz)
+    nearest_time = current_time + timedelta(minutes=(interval - current_time.minute % interval))
+    return nearest_time.strftime("%I:%M %p")
+
 # This is the function that I'm trying to test that takes in the geolocation
 # and returns the nearest stores, but I'm not sure how to get the geolocation both
 # accurately and naturally (i.e. I don't want to ask for their address + zip code +
