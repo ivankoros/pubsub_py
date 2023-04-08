@@ -30,10 +30,12 @@ def incoming_sms():
     # Send the response message
     resp = MessagingResponse()
 
-    def reply_all_messages(list_of_messages):
-        for m in list_of_messages:
-            resp.message(m)
-            time.sleep(1)
+    def reply_all_messages(messages_to_send):
+        if type(messages_to_send) == str:
+            resp.message(messages_to_send)
+        else:
+            for m in messages_to_send:
+                resp.message(m)
 
     match next_state:
         case 'get_name':
@@ -44,7 +46,7 @@ def incoming_sms():
             resp.message(message)
         case _:
             print(f"message back to user: {message}")
-            resp.message(message)
+            reply_all_messages(message)
 
     return Response(str(resp), mimetype="application/xml")
 
@@ -73,4 +75,4 @@ api.add_resource(UserData, '/')
 if __name__ == "__main__":
     app.run(debug=True,
             host="0.0.0.0",
-            port=6000)
+            port=7000)
