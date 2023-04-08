@@ -3,6 +3,9 @@ import random
 import requests
 import os
 from dotenv import load_dotenv
+from twilio.rest import Client
+import pytz
+from datetime import datetime, timedelta
 
 
 # These are the text responses that I'm using in a class
@@ -38,24 +41,27 @@ class TextResponses:
     def get_response(self, response):
         return random.choice(self.text_responses[response])
 
+
 class SubOrder:
-    def __init__(self, requested_sub, store_name, date_of_order):
+    def __init__(self, requested_sub, store_name, date_of_order, first_name,
+                 last_name, email, phone_number, time_of_order):
         self.requested_sub = requested_sub
         self.store_name = store_name
         self.date_of_order = date_of_order
-
-    # Order confirmation feedback
-        self.first_name = None
-        self.last_name = None
-        self.ordered_sandwich_name = None
-        self.time_of_order = None
+        self.time_of_order = time_of_order
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.phone_number = phone_number
 
     def __str__(self):
-        return f"Great, your order for the {self.ordered_sandwich_name} " \
+        return f"Great, your order for the {self.requested_sub} " \
                f"is confirmed for pickup at {self.store_name} " \
                f"at {self.time_of_order} today. " \
                f"It'll be ready under the name {self.first_name} {self.last_name}.\n" \
                f"Enjoy your sub! :)"
+
+
 
 # This is the function that I'm trying to test that takes in the geolocation
 # and returns the nearest stores, but I'm not sure how to get the geolocation both
@@ -229,4 +235,3 @@ all_sandwiches = [
     "Boar's Head Cracked Pepper Turkey Wrap",
     "Publix Deli Meatless Philly Sub Hot"
 ]
-
