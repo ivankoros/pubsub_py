@@ -13,6 +13,15 @@ from datetime import datetime
 
 from backend.resources import create_webdriver
 
+class OrderSubFunctionDiagnostic():
+    def __init__(self, selected_store_location, selected_sandwich):
+        self.selected_store_location = selected_store_location
+        self.selected_sandwich = selected_sandwich
+        self.run_speed = None
+
+    def __repr__(self):
+        return f"OrderSubFunctionDiagnostic(store_name={self.store_name}, requested_sub={self.requested_sub})"
+
 
 def order_sub(self):
     start = time.time()
@@ -58,9 +67,26 @@ def order_sub(self):
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     # Click on the correct sub
+    # pick_sandwich = WebDriverWait(driver, 10).until(
+    #     EC.element_to_be_clickable((By.XPATH, f'//*[contains(text(),"{self.requested_sub.strip()}")]'))
+    # )
+    # sandwich_name = pick_sandwich.text
+    # pick_sandwich.click()
+    # print(f"Selected sandwich: {sandwich_name}")
+
+    requested_sub = self.requested_sub.strip()
+
+    if requested_sub.startswith("Boar's Head"):
+        # Split the sub name around the reserved symbol
+        prefix, suffix = requested_sub.split("Boar's Head")
+        xpath_query = f'//*[contains(text(),"Boar") and contains(text(),"{suffix.strip()}")]'
+    else:
+        xpath_query = f'//*[contains(text(),"{requested_sub}")]'
+
+
     pick_sandwich = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, f'//*[contains(text(),"{self.requested_sub.strip()}")]'))
-    )
+        EC.element_to_be_clickable((By.XPATH, xpath_query))
+        )
     sandwich_name = pick_sandwich.text
     pick_sandwich.click()
     print(f"Selected sandwich: {sandwich_name}")
@@ -182,7 +208,7 @@ def order_sub(self):
 
 
 if __name__ == '__main__':
-    order = SubOrder(requested_sub='Publix Italian',
+    order = SubOrder(requested_sub='Boar\'s Head Ultimate Sub',
                      store_name='St. John\'s Town Center',
                      date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"))
     order_sub(order)
