@@ -7,6 +7,7 @@ from twilio.rest import Client
 import pytz
 from datetime import datetime, timedelta
 from fuzzywuzzy import process
+from geopy.distance import geodesic
 
 
 # These are the text responses that I'm using in a class
@@ -18,7 +19,10 @@ class TextResponses:
             "get_name": ["What's your name?",
                          "What should I call you?"],
             "get_store_location": ["What's your address?",
-                                   "Let me know your general location so I can find the nearest store."],
+                                   "Let me know your general location so I can find the nearest store.",
+                                   "What's your nearest intersection or landmark?",
+                                   "Please provide a nearby street name or general address."
+                                   ],
             "get_sale": ["What's on sale today?",
                          "What subs are on sale today?"],
             "default": ["You're in the default state",
@@ -151,19 +155,48 @@ def find_closest_sandwich(user_input, all_sandwiches):
 # and returns the nearest stores, but I'm not sure how to get the geolocation both
 # accurately and naturally (i.e. I don't want to ask for their address + zip code +
 # city + state, I just want to ask for a nearby street name or general address)
-def find_nearest_stores(location, keyword="Publix", result_count=3):
-    load_dotenv()
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+def find_nearest_stores(location, result_count=3):
 
-    url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location['lat']}%2C{location['lng']}&radius=10000&type=supermarket&keyword={keyword}&key={api_key}"
+    maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 
-    payload = {}
-    headers = {}
+    google_maps_client = googlemaps.Client(key=maps_api_key)
 
-    response = requests.request("GET", url, headers=headers, data=payload)
-    response_data = response.json()
+    geocode_results = google_maps_client.geocode(location)
+    user_coordinates = geocode_results[0]['geometry']['location']
 
-    return response_data['results'][:result_count]
+    places_result = google_maps_client.places_nearby(location=user_coordinates,
+                                                     radius=5000,
+                                                     keyword='Publix',
+                                                     type='grocery_or_supermarket')
+
+    places = []
+    for i, place in enumerate(places_result['results']):
+        place_coordinates = place['geometry']['location']
+        distance_from_user = geodesic((user_coordinates['lat'],
+                                       user_coordinates['lng']),
+                                      # We're calculating the distance from the user to each result
+                                      (place_coordinates['lat'],
+                                       place_coordinates['lng'])).meters
+
+        if "Pharmacy" not in place['name']:
+            places.append({
+                "name": place['name'],
+                "address": place['vicinity'],
+                "distance": distance_from_user
+            })
+
+    # Sort the results by distance from the user
+    places.sort(key=lambda x: x['distance'])
+
+    # Print them out nice :)
+    for i, result in enumerate(places):
+        print(f"{i + 1}. {result['name']}")
+        print(f"   Address: {result['address']}")
+        print(f"   Distance: {round(result['distance'])} meters")
+        print()
+
+    # Return up to the number of results specified (default is 3)
+    return places[:result_count]
 
 
 # All possible customization tops for Publix subs
