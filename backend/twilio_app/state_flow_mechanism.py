@@ -1,11 +1,11 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, Response, request
 from fuzzywuzzy import process
 from backend.resources import SubDeal
 from backend.resources import Users
-from backend.twilio_app.helpers import TextResponses, SubOrder, all_sandwiches
-from backend.selenium_app.order_sub_auto import order_sub
+from backend.twilio_app.helpers import TextResponses, SubOrder, all_sandwiches, generate_user_info
+from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
 
 
 # Find/initialize the user
@@ -76,39 +76,49 @@ def default_action(message, *args):
         return 'default', state_info['default']['text_response']
 
 def order_sub_action(body, session, user, *args):
-# Order a sub
 
     def find_closest_sandwich(user_input, all_sandwiches):
         # Find the best match using fuzzy string matching
         best_match, score = process.extractOne(user_input, all_sandwiches)
 
-        # Set a threshold for a minimum score to consider it a match
-        match_threshold = 70
-
-        if score >= match_threshold:
+        if score >= 70:
             return best_match
         else:
             return "No match found"
 
     if 'exit' in body:
-        # Find the closest match to the user's input
+        return 'default', "you said exit, you're now in the default sate. say 'order' to order a sub."
+    if find_closest_sandwich(body, all_sandwiches) != "No match found":
+
         sandwich = find_closest_sandwich(body, all_sandwiches)
-        print(f"most likely sub: {sandwich}")
+        store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_address
+        today_date = datetime.today().date().strftime("%A, %B %d, %Y")
+
+        current_time = datetime.strptime("1:57 PM", "%I:%M %p")
+        nearest_time = current_time + timedelta(minutes=(30 - current_time.minute % 10))
+        print(nearest_time.strftime("%I:%M %p"))
+
+        first_name, last_name, email, phone_number = generate_user_info()
+
+
 
         order = SubOrder(
             requested_sub=sandwich,
-            # Query store name from database vs user's phone number
-            store_name=session.query(Users).filter(
-                Users.phone_number == user.phone_number).first().selected_store_address,
-            date_of_order=datetime.today().date().strftime("%A, %B %d, %Y")
+            store_name=store_name,
+            date_of_order=today_date,
+            time_of_order = "pLACEOHLDER",
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone_number=phone_number
 
         )
 
-        #order = order_sub(order)
+
+        order = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
+        print(SubOrder.__str__(order))
 
         return 'order_sub', f'sounds like you want a: {sandwich}' #order.__str__()
-    if body == "exit":
-        return 'default', "you said exit, you're now in the default sate. say 'order' to order a sub."
     else:
         return 'order_sub', f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
                             " default state"
