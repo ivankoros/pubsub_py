@@ -1,3 +1,4 @@
+import datetime
 import random
 import time
 
@@ -12,7 +13,15 @@ from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
 
 from backend.resources import create_webdriver
+"""
+Consider creating a separate function to handle setting up the driver, such as initialize_driver(), which will create the webdriver and set the user agent.
 
+Create a function to handle finding and clicking elements, like click_element(driver, xpath, wait_time) to reduce the repetitive code.
+
+Create a function to input user information like input_user_info(driver, first_name, last_name, email, phone_number) to make the main function shorter and more readable.
+
+Consider creating a function to handle the date and time selection, like select_pickup_date_and_time(driver).
+"""
 class OrderSubFunctionDiagnostic():
     def __init__(self):
         self.selected_store_location = None
@@ -124,7 +133,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
     # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
-    driver.implicitly_wait(3)
+    driver.implicitly_wait(1)
 
     try:
         confirm_location_element = driver.find_element(By.XPATH,
@@ -158,8 +167,9 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     datepicker = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.datepicker-activate'))
     )
-    time.sleep(2)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
+      # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
     datepicker.click()
+    time.sleep(2)
 
     # The date is easy to enter, as it is a calendar-style picker and each date has a unique label which we can use to find it
     """
@@ -169,34 +179,36 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     """
     driver.implicitly_wait(5)
 
-    driver.find_element(By.XPATH, value='//*[contains(@aria-label, "Today")]').click()
+    date_dropdown = driver.find_element(By.XPATH, value='//*[contains(@aria-label, "Today")]')
+    date_dropdown.click()
 
     # Select the pickup time
     time_dropdown = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//select[@name="pickupTime"] '))
     )
-    time_dropdown.click()
+    #time_dropdown.click()
 
     select = Select(time_dropdown)
+    select.select_by_index(1)
 
-    first_time_option = select.options[1]  # Get the first available time slot (index 0 is empty)
+    pickup_time_html = select.options[1].get_attribute('innerHTML')
 
-    # Use JavaScript to get the text content of the first time option
-    pickup_time = driver.execute_script("return arguments[0].textContent", first_time_option).strip()
-    diagnostic.pickup_time = pickup_time
-
-    select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
+    import re
+    extracted_time = re.search(r'<span class="time-item">(.+)</span>', pickup_time_html).group(1)
+    diagnostic.pickup_time = extracted_time
+    print(diagnostic.pickup_time)
 
     # Click the next button, unlocking the next form below with the payment information
     final_next_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, '//*[@id="content_26"]/form/div[3]/div/button'))
-    )
+        EC.element_to_be_clickable((By.XPATH, '//*[contains(@id, "content")]/form/div[3]/div/button'
+)))
+
     final_next_button.click()
 
+    time.sleep(1000)
     # This is the payment information section, where instead of credit card info, I choose "pay in store"
 
-    driver.find_element(By.XPATH, '//*[@id="content_30"]/form/div[2]/div/div[1]/div[1]').click()
-    print("Payment info entered successfully")
+    # Click the pay in store button
 
     # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
 
@@ -209,7 +221,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     self.last_name = last_name
     self.store_name = official_location_name
     self.ordered_sandwich_name = sandwich_name
-    self.time_of_order = pickup_time
+    self.time_of_order = extracted_time
 
     end = time.time()
     diagnostic.run_speed = round(end - start)
@@ -218,7 +230,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
 
 if __name__ == '__main__':
-    order = SubOrder(requested_sub='Boar\'s Head Ultimate Sub',
+    order = SubOrder(requested_sub='Boar\'s Head Ham Sub',
                      store_name='St. John\'s Town Center',
                      date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"))
     order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
