@@ -18,12 +18,31 @@ class OrderSubFunctionDiagnostic():
         self.selected_store_location = selected_store_location
         self.selected_sandwich = selected_sandwich
         self.run_speed = None
+        self.user_agent = None
+        self.official_location_name = None
+        self.sandwich_name = None
+        self.pickup_time = None
+        self.first_name = None
+        self.last_name = None
+        self.email = None
+        self.phone_number = None
 
     def __repr__(self):
-        return f"OrderSubFunctionDiagnostic(store_name={self.store_name}, requested_sub={self.requested_sub})"
+        output = f"OrderSubFunctionDiagnostic:\n" \
+                 f"Selected store location: {self.selected_store_location}\n" \
+                 f"Selected sandwich: {self.selected_sandwich}\n" \
+                 f"User agent: {self.user_agent}\n" \
+                 f"Official location name: {self.official_location_name}\n" \
+                 f"Selected sandwich: {self.sandwich_name}\n" \
+                 f"First pickup time: {self.pickup_time}\n" \
+                 f"First name: {self.first_name}\n" \
+                 f"Last name: {self.last_name}\n" \
+                 f"Email: {self.email}\n" \
+                 f"Phone number: {self.phone_number}\n" \
+                 f"Run speed: {self.run_speed}"
+        return output
 
-
-def order_sub(self):
+def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     start = time.time()
 
     driver = create_webdriver()
@@ -41,7 +60,7 @@ def order_sub(self):
     for i in range(len(user_agent_array)):
         # Setting user agent iteratively as Chrome 108 and 107
         driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
-        print(driver.execute_script("return navigator.userAgent;"))
+        diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
         driver.get("https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648")
 
     # This sets the webdriver to undefined, so that the browser thinks it's not a webdriver
@@ -66,14 +85,7 @@ def order_sub(self):
     print(f"location name: {official_location_name}")
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
-    # Click on the correct sub
-    # pick_sandwich = WebDriverWait(driver, 10).until(
-    #     EC.element_to_be_clickable((By.XPATH, f'//*[contains(text(),"{self.requested_sub.strip()}")]'))
-    # )
-    # sandwich_name = pick_sandwich.text
-    # pick_sandwich.click()
-    # print(f"Selected sandwich: {sandwich_name}")
-
+    # Choose requested sub from sub list
     requested_sub = self.requested_sub.strip()
 
     if requested_sub.startswith("Boar's Head"):
@@ -82,7 +94,6 @@ def order_sub(self):
         xpath_query = f'//*[contains(text(),"Boar") and contains(text(),"{suffix.strip()}")]'
     else:
         xpath_query = f'//*[contains(text(),"{requested_sub}")]'
-
 
     pick_sandwich = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, xpath_query))
@@ -100,7 +111,6 @@ def order_sub(self):
     driver.implicitly_wait(5)
     add_to_cart_button = '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button'
     driver.find_element(By.XPATH, add_to_cart_button).click()
-
 
     """ Go directly to check out by going to this link
     Instead of clicking review order, confirming store, and then clicking the checkout button,
@@ -148,7 +158,6 @@ def order_sub(self):
     )
     time.sleep(2)  # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
     datepicker.click()
-
 
     # The date is easy to enter, as it is a calendar-style picker and each date has a unique label which we can use to find it
     """
