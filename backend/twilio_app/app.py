@@ -3,7 +3,7 @@ from flask import Flask, Response, request
 from flask_restful import Resource, Api
 from twilio.twiml.messaging_response import MessagingResponse
 from backend.resources import initialize_database
-from state_flow_mechanism import get_user, state_info
+from backend.twilio_app.state_flow_mechanism import get_user, state_info
 from backend.resources import Users
 
 app = Flask(__name__)
@@ -16,6 +16,7 @@ def incoming_sms():
 
     # Initialize the user
     user = get_user(session)
+    print(f"user says: {request.values.get('Body', '')}")
 
     # Get the action and required arguments from state_info
     action = state_info[user.state]['action']
@@ -39,6 +40,7 @@ def incoming_sms():
             time.sleep(1)
             resp.message(message)
         case _:
+            print(f"message back to user: {message}")
             resp.message(message)
 
     return Response(str(resp), mimetype="application/xml")
@@ -65,8 +67,7 @@ class UserData(Resource):
 
 api.add_resource(UserData, '/')
 
-
 if __name__ == "__main__":
     app.run(debug=True,
             host="0.0.0.0",
-            port=5000)
+            port=4001)
