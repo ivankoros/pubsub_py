@@ -96,9 +96,8 @@ def generate_user_info():
     test the app with different names and emails to make sure it's working properly.
 
     """
-    suffix_options = ['McGee', 'Yeo', 'Von Humperdink', 'Von Schnitzel', 'The Magnificent', 'The Great', 'The Terrible',
-                      'The Unstoppable', 'The Indomitable', 'The Invincible', '', '', '', '', '', '', '', '', '', '',
-                      '']
+    suffix_options = ['McGee', 'Yeo', 'Von Humperdink', 'Von Schnitzel',
+                      '', '', '', '', '', '', '', '', '', '','']
 
     first_name_options = ['Wilfred', 'Skipps', 'Rigby', 'Vlad', 'Derwin', 'Yertle', 'Balthazar', 'Bartholomew', 'Looie',
                           'Zooie', 'Finnegan', 'Gulliver', 'Horatio', 'Isadora', 'Jasper', 'Lysander', 'Jo-Jo', 'Mack',
@@ -126,11 +125,15 @@ def generate_user_info():
 
     return first_name.strip(), last_name.strip(), email.strip(), phone_number.strip()
 
+
 def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_interval=5):
     local_tz = pytz.timezone(timezone)
     current_time = datetime.now(local_tz)
     nearest_time = current_time + timedelta(minutes=(length_interval - current_time.minute % update_interval))
-    formatted_time = nearest_time.strftime("%I:%M %p").lstrip().replace('0', '')
+
+    # Split the time into hours and minutes, then remove the leading zero from the hours only
+    hour, rest_of_time = nearest_time.strftime("%I:%M %p").split(":", 1)
+    formatted_time = hour.lstrip('0') + ":" + rest_of_time
 
     return formatted_time
 
