@@ -1,10 +1,12 @@
 import time
 from datetime import datetime, timedelta
 from flask import Flask, Response, request
-from fuzzywuzzy import process
+
 from backend.resources import SubDeal
 from backend.resources import Users
-from backend.twilio_app.helpers import TextResponses, SubOrder, all_sandwiches, generate_user_info
+from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches, generate_user_info,
+                                        find_closest_sandwich, nearest_interval_time)
+
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
 
 
@@ -62,9 +64,7 @@ def get_sale_action(body, session, *args):
             message = f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}" \
                       f" are on sale today!"
 
-    # Go to the default state
     return 'default', message
-
 
 def default_action(message, *args):
     # If the user input is recognized, initialize the default state
@@ -77,36 +77,23 @@ def default_action(message, *args):
 
 def order_sub_action(body, session, user, *args):
 
-    def find_closest_sandwich(user_input, all_sandwiches):
-        # Find the best match using fuzzy string matching
-        best_match, score = process.extractOne(user_input, all_sandwiches)
-
-        if score >= 70:
-            return best_match
-        else:
-            return "No match found"
-
     if 'exit' in body:
         return 'default', "you said exit, you're now in the default sate. say 'order' to order a sub."
+
     if find_closest_sandwich(body, all_sandwiches) != "No match found":
 
         sandwich = find_closest_sandwich(body, all_sandwiches)
         store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_address
-        today_date = datetime.today().date().strftime("%A, %B %d, %Y")
-
-        current_time = datetime.strptime("1:57 PM", "%I:%M %p")
-        nearest_time = current_time + timedelta(minutes=(30 - current_time.minute % 10))
-        print(nearest_time.strftime("%I:%M %p"))
+        order_date = datetime.today().date().strftime("%A, %B %d, %Y")
+        order_time = nearest_interval_time()
 
         first_name, last_name, email, phone_number = generate_user_info()
-
-
 
         order = SubOrder(
             requested_sub=sandwich,
             store_name=store_name,
-            date_of_order=today_date,
-            time_of_order = "pLACEOHLDER",
+            date_of_order=order_date,
+            time_of_order = order_time,
             first_name=first_name,
             last_name=last_name,
             email=email,
@@ -114,11 +101,7 @@ def order_sub_action(body, session, user, *args):
 
         )
 
-
-        order = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
-        print(SubOrder.__str__(order))
-
-        return 'order_sub', f'sounds like you want a: {sandwich}' #order.__str__()
+        return 'order_sub', SubOrder.__str__(order)
     else:
         return 'order_sub', f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
                             " default state"
