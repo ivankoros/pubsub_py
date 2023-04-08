@@ -30,11 +30,14 @@ def incoming_sms():
     # Send the response message
     resp = MessagingResponse()
 
+    def reply_all_messages(list_of_messages):
+        for m in list_of_messages:
+            resp.message(m)
+            time.sleep(1)
+
     match next_state:
         case 'get_name':
-            resp.message(f"Hey, welcome to Pubsub Py!")
-            time.sleep(1)
-            resp.message(message)
+            reply_all_messages(message)
         case 'get_store_location':
             resp.message(f"Hey, {user.name}!")
             time.sleep(1)
@@ -70,4 +73,4 @@ api.add_resource(UserData, '/')
 if __name__ == "__main__":
     app.run(debug=True,
             host="0.0.0.0",
-            port=4001)
+            port=6000)
