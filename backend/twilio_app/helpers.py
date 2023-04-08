@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from twilio.rest import Client
 import pytz
 from datetime import datetime, timedelta
+from fuzzywuzzy import process
 
 
 # These are the text responses that I'm using in a class
@@ -61,6 +62,7 @@ class SubOrder:
                f"It'll be ready under the name {self.first_name} {self.last_name}.\n" \
                f"Enjoy your sub! :)"
 
+
 class TwilioTexts:
     def __init__(self, phone_number, message):
         self.phone_number = phone_number
@@ -78,7 +80,6 @@ class TwilioTexts:
             messaging_service_sid=messaging_service_sid,
             body=self.message,
             to=self.phone_number)
-
 
 
 def generate_user_info():
@@ -110,7 +111,7 @@ def generate_user_info():
     last_name_options = ['McBean', 'Vlad-i-Koff', 'Katz', 'Muffinpuff', 'Katzen-bein', 'Cubbins',
                          'McSnazzy', 'Flapdoodle', 'Flibbertigibbet', 'McGrew', 'Who', 'Bar-ba-loots',
                          'McFuzz', 'Mulvaney', 'McCave', 'Wickersham', 'McGurk', 'Joat', 'Yookero',
-                         'Sard', 'Potter', 'Haddow', 'Hart', 'Hawtch-Hawtcher','Gump', 'Fish', 'Lagoona']
+                         'Sard', 'Potter', 'Haddow', 'Hart', 'Hawtch-Hawtcher', 'Gump', 'Fish', 'Lagoona']
 
     email_ending_options = ['@aol.com', '@yahoo.com', '@hotmail.com', '@yandex.com', '@bungus.com', '@saxophone.com']
 
@@ -129,11 +130,24 @@ def generate_user_info():
 
     return first_name.strip(), last_name.strip(), email.strip(), phone_number.strip()
 
-def nearest_interval_time(timezone='US/Eastern', interval=5):
+
+def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_interval = 5):
     local_tz = pytz.timezone(timezone)
     current_time = datetime.now(local_tz)
-    nearest_time = current_time + timedelta(minutes=(interval - current_time.minute % interval))
-    return nearest_time.strftime("%I:%M %p")
+    nearest_time = current_time + timedelta(minutes=(length_interval - current_time.minute % update_interval))
+    formatted_time = nearest_time.strftime("%l:%M %p").lstrip()
+
+    return formatted_time
+
+def find_closest_sandwich(user_input, all_sandwiches):
+    # Find the best match using fuzzy string matching
+    best_match, score = process.extractOne(user_input, all_sandwiches)
+
+    if score >= 70:
+        return best_match
+    else:
+        return "No match found"
+
 
 # This is the function that I'm trying to test that takes in the geolocation
 # and returns the nearest stores, but I'm not sure how to get the geolocation both
