@@ -1,18 +1,20 @@
 import datetime
 import random
 import time
+import re
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
-from backend.selenium_app.helpers import webdriver_location_input, generate_user_info
+from backend.selenium_app.helpers import webdriver_location_input
 
 from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
 
 from backend.resources import create_webdriver
+
 """
 Consider creating a separate function to handle setting up the driver, such as initialize_driver(), which will create the webdriver and set the user agent.
 
@@ -22,6 +24,8 @@ Create a function to input user information like input_user_info(driver, first_n
 
 Consider creating a function to handle the date and time selection, like select_pickup_date_and_time(driver).
 """
+
+
 class OrderSubFunctionDiagnostic():
     def __init__(self):
         self.selected_store_location = None
@@ -50,6 +54,7 @@ class OrderSubFunctionDiagnostic():
                  f"Phone number: {self.phone_number}\n" \
                  f"Run speed: {self.run_speed}"
         return output
+
 
 def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     start = time.time()
@@ -91,8 +96,6 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     # Store location input
     location = self.store_name.strip()
     official_location_name = webdriver_location_input(driver, location)
-    diagnostic.official_location_name = official_location_name
-    # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     # Choose requested sub from sub list
     requested_sub = self.requested_sub.strip()
@@ -106,10 +109,9 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
     pick_sandwich = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, xpath_query))
-        )
+    )
     sandwich_name = pick_sandwich.text
     pick_sandwich.click()
-    diagnostic.sandwich_name = sandwich_name
 
     # Press customize sub button
     driver.implicitly_wait(5)
@@ -141,21 +143,16 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
         if confirm_location_element.is_displayed():
             confirm_location_element.click()
     except NoSuchElementException:
-        print("Confirm location element not found, continuing...")
+        pass
 
     # Input info for pickup
-    first_name, last_name, email, phone_number = generate_user_info()
+    driver.find_element(By.XPATH, '//*[@name="FirstName"]').send_keys(self.first_name)
 
-    diagnostic.first_name, diagnostic.last_name, diagnostic.email, diagnostic.phone_number\
-        = first_name, last_name, email, phone_number
+    driver.find_element(By.XPATH, '//*[@name="LastName"]').send_keys(self.last_name)
 
-    driver.find_element(By.XPATH, '//*[@name="FirstName"]').send_keys(first_name)
+    driver.find_element(By.XPATH, '//*[@name="ContactPhone"]').send_keys(self.phone_number)
 
-    driver.find_element(By.XPATH, '//*[@name="LastName"]').send_keys(last_name)
-
-    driver.find_element(By.XPATH, '//*[@name="ContactPhone"]').send_keys(phone_number)
-
-    driver.find_element(By.XPATH, '//*[@name="Email"]').send_keys(email)
+    driver.find_element(By.XPATH, '//*[@name="Email"]').send_keys(self.email)
 
     # Click the next button, unlocking the next form below with the date and time pickers
     next_button = WebDriverWait(driver, 10).until(
@@ -167,7 +164,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     datepicker = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.datepicker-activate'))
     )
-      # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
+    # This time sleep is necessary. When the date picker is opened, the page rapidly scrolls to the bottom, and the wrong date is picked.
     datepicker.click()
     time.sleep(2)
 
@@ -186,43 +183,41 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     time_dropdown = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//select[@name="pickupTime"] '))
     )
-    #time_dropdown.click()
+    # time_dropdown.click()
 
     select = Select(time_dropdown)
     select.select_by_index(1)
 
     pickup_time_html = select.options[1].get_attribute('innerHTML')
 
-    import re
     extracted_time = re.search(r'<span class="time-item">(.+)</span>', pickup_time_html).group(1)
-    diagnostic.pickup_time = extracted_time
-    print(diagnostic.pickup_time)
 
     # Click the next button, unlocking the next form below with the payment information
     final_next_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//*[contains(@id, "content")]/form/div[3]/div/button'
-)))
+                                    )))
 
     final_next_button.click()
+
     # This is the payment information section, where instead of credit card info, I choose "pay in store"
-    paiynfiwe = driver.find_element(By.CSS_SELECTOR, 'input[type="radio"][value="Pay in-store"]')
-    driver.execute_script("arguments[0].click();", paiynfiwe)
+    pay_in_store_button = driver.find_element(By.CSS_SELECTOR, 'input[type="radio"][value="Pay in-store"]')
+    driver.execute_script("arguments[0].click();", pay_in_store_button)
 
-    time.sleep(1000)
     # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
-
     driver.quit()
-    print("Driver quit and order submitted successfully")
 
-    # Update the SubOrder object with the order feedback
+    # Stop the timer
+    end = time.time()
 
-    self.first_name = first_name
-    self.last_name = last_name
+    # Update the SubOrder object with accurate information
     self.store_name = official_location_name
     self.ordered_sandwich_name = sandwich_name
     self.time_of_order = extracted_time
 
-    end = time.time()
+    # Update the diagnostic object with accurate information
+    diagnostic.sandwich_name = sandwich_name
+    diagnostic.pickup_time = extracted_time
+    diagnostic.official_location_name = official_location_name
     diagnostic.run_speed = round(end - start)
 
     return self, diagnostic
