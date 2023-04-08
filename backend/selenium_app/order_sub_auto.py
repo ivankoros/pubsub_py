@@ -204,12 +204,11 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 )))
 
     final_next_button.click()
+    # This is the payment information section, where instead of credit card info, I choose "pay in store"
+    paiynfiwe = driver.find_element(By.CSS_SELECTOR, 'input[type="radio"][value="Pay in-store"]')
+    driver.execute_script("arguments[0].click();", paiynfiwe)
 
     time.sleep(1000)
-    # This is the payment information section, where instead of credit card info, I choose "pay in store"
-
-    # Click the pay in store button
-
     # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
 
     driver.quit()
