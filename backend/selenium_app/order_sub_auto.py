@@ -14,9 +14,9 @@ from datetime import datetime
 from backend.resources import create_webdriver
 
 class OrderSubFunctionDiagnostic():
-    def __init__(self, selected_store_location, selected_sandwich):
-        self.selected_store_location = selected_store_location
-        self.selected_sandwich = selected_sandwich
+    def __init__(self):
+        self.selected_store_location = None
+        self.selected_sandwich = None
         self.run_speed = None
         self.user_agent = None
         self.official_location_name = None
@@ -82,7 +82,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     # Store location input
     location = self.store_name.strip()
     official_location_name = webdriver_location_input(driver, location)
-    print(f"location name: {official_location_name}")
+    diagnostic.official_location_name = official_location_name
     # driver.find_element(BY.XPATH, "//button[@aria-label=\"Choose St. John's Town Center as your store\"]").click()
 
     # Choose requested sub from sub list
@@ -100,7 +100,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
         )
     sandwich_name = pick_sandwich.text
     pick_sandwich.click()
-    print(f"Selected sandwich: {sandwich_name}")
+    diagnostic.sandwich_name = sandwich_name
 
     # Press customize sub button
     driver.implicitly_wait(5)
@@ -136,7 +136,9 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
     # Input info for pickup
     first_name, last_name, email, phone_number = generate_user_info()
-    print(first_name, last_name, email, phone_number)
+
+    diagnostic.first_name, diagnostic.last_name, diagnostic.email, diagnostic.phone_number\
+        = first_name, last_name, email, phone_number
 
     driver.find_element(By.XPATH, '//*[@name="FirstName"]').send_keys(first_name)
 
@@ -181,7 +183,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
     # Use JavaScript to get the text content of the first time option
     pickup_time = driver.execute_script("return arguments[0].textContent", first_time_option).strip()
-    print(f"First pickup time: {pickup_time}")
+    diagnostic.pickup_time = pickup_time
 
     select.select_by_index(1)  # Soonest pickup time (in around 30 minutes)
 
@@ -210,14 +212,16 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     self.time_of_order = pickup_time
 
     end = time.time()
+    diagnostic.run_speed = round(end - start)
 
-    print(f"sub order took: {round(end - start)} seconds to run")
-
-    return self
+    return self, diagnostic
 
 
 if __name__ == '__main__':
     order = SubOrder(requested_sub='Boar\'s Head Ultimate Sub',
                      store_name='St. John\'s Town Center',
                      date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"))
-    order_sub(order)
+    order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
+
+    print(diagnostic)
+    print(SubOrder.__str__(order_feedback))
