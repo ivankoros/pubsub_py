@@ -141,9 +141,9 @@ def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_inte
 
     return formatted_time
 
-def find_closest_sandwich(user_input, all_sandwiches):
+def closest_string_match_fuzzy(item_to_match, match_possibilities_list):
     # Find the best match using fuzzy string matching
-    best_match, score = process.extractOne(user_input, all_sandwiches)
+    best_match, score = process.extractOne(item_to_match, match_possibilities_list)
 
     if score >= 70:
         return best_match
