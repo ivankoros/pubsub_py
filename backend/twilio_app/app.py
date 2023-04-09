@@ -124,12 +124,8 @@ def incoming_sms():
                 resp.message(m)
 
     match next_state:
-        case 'get_name':
-            reply_all_messages(message)
         case 'get_store_location':
-            resp.message(f"Hey, {user.name}!")
-            time.sleep(1)
-            resp.message(message)
+            reply_all_messages(message)
         case _:
             print(f"message back to user: {message}")
             reply_all_messages(message)
@@ -143,7 +139,6 @@ class UserData(Resource):
         This is the rest API I will use to server my React app later.
 
     """
-
     def get(self):
         session = initialize_database()
         users = session.query(Users).all()
