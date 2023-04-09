@@ -1,8 +1,8 @@
-import time
 import asyncio
-from datetime import datetime, timedelta
-from flask import Flask, Response, request
+from datetime import datetime
+from flask import request
 from concurrent.futures import ThreadPoolExecutor
+from backend.nlp import find_closest_sandwich_sk
 import re
 
 from backend.resources import SubDeal
@@ -40,11 +40,19 @@ def get_user(session):
 
 
 def start_action(*args):
-    # Switches the user to the get_name state automatically
-    # Might remove this later and just have the user initialized
-    #   into the get_name state
-    message_back = [f"Hey, welcome to Pubsub Py!",
-                    state_info['get_name']['text_response']]
+    """
+    This is the state new users start out in if they don't have a name or anything
+    else besides their phone number in the database.
+
+    I Send some a welcoming message and prompt them for their name.
+    I put them in the 'get_name' state and treat their next message as the input for
+    their name.
+
+    :param args:
+    :return:
+    """
+    message_back = state_info['start']['text_response'] + \
+                   state_info['get_name']['text_response']
 
     return 'get_name', message_back
 
@@ -64,11 +72,13 @@ def get_name_action(body, session, user):
     # Get the user's name and save it to the database
     user.name = body
     session.commit()
-    return 'get_store_location', state_info['get_store_location']['text_response']
+
+    messages = [f"Hey, {user.name}!"] + state_info['get_store_location']['text_response']
+
+    return 'get_store_location', messages
 
 
 def get_store_location_action(body, session, user):
-
     # Here I'm calling the find_nearest_stores function to find the (default 3) nearest
     # stores to the user's location with the Google Places and Geolocation APIs and Geopy.
     # I'm passing in the user's given location as the argument.
@@ -88,23 +98,24 @@ def get_store_location_action(body, session, user):
          
         1. Publix Super Market at Southgate Shopping Center
            Address: 2515 Florida Ave S, Lakeland
-           Distance: 14 meters
            
            ...
         """
-        message_back = f"Here are the nearest stores I found to {body}\n :"
+        message_back = f"Here are the nearest stores I found to {body}:\n\n"
         for i, store in enumerate(nearest_stores):
             message_back += f"{i + 1}. {store['name']}\n " \
-                            f"   Address: {store['address']}\n " \
-                            f"   Distance: {round(store['distance'])} meters\n "
+                            f"   Address: {store['address']}\n "
 
         message_back += "Which one would you like to order from? " \
-                        "If none of these are correct, say 'redo' and we can go back a step."
+                        "You can give a number (1) or verbal confirmation (Yea, St. John's) " \
+                        "If none of these are correct, say 'redo' and we'll go back a step. "
 
         return "confirm_store", message_back
     else:
-        return "get_location", "No stores found near that location, give me another location' \
-                               'and I'll try to find some stores again."
+        message_back = ["I didn't find any stores near that location, give me another location "
+                        "and I'll try again to find some stores."]
+
+        return "get_location", message_back
 
 
 def confirm_store_action(body, session, user):
@@ -150,19 +161,18 @@ def confirm_store_action(body, session, user):
             """
             remove_pattern = 'Publix Super Market at '
             user.selected_store_name = store['name'].replace(remove_pattern, '').strip()
-
             session.commit()
-            message = f"Great! I'll remember that you want to order from {store['name']}.\n"
 
-            messages = [(state_info['get_store_location']['text_response']), message]
+            messages = [f"Great! I'll remember that you want to order from {store['name']}."] + \
+                       state_info['default']['text_response']
 
             return 'default', messages
 
     else:
-        message = ['I didn\'t get that, let\'s try that again. What\'s your preferred?',
-                   'You can also say \'redo\' to search for a new location.']
+        message = ["I didn't get that. You can give a number (1) or verbal confirmation (Yea, St. John's)",
+                   "You can also say 'redo' to search for a new location."]
 
-        return 'confirm_store_location', message
+        return 'confirm_store', message
 
 
 def get_sale_action(body, session, *args):
@@ -234,9 +244,9 @@ def order_sub_action(body, session, user, *args):
     if 'exit' in body:
         return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
-    if closest_string_match_fuzzy(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
+    if find_closest_sandwich_sk(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
 
-        sandwich = closest_string_match_fuzzy(body, all_sandwiches)
+        sandwich = find_closest_sandwich_sk(body, all_sandwiches)
         store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_name
         store_address = session.query(Users).filter(
             Users.phone_number == user.phone_number).first().selected_store_address
