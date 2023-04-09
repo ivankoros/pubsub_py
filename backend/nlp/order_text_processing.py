@@ -8,6 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 nltk.download('stopwords')
 nltk.download('wordnet')
 
+
 def clean_text(user_text_input):
     text = user_text_input.lower()
 
@@ -19,6 +20,7 @@ def clean_text(user_text_input):
     text = " ".join([word for word in text.split() if word not in stop_words])
 
     return text
+
 
 def find_synonyms(word):
     """Find synonyms of a word using WordNet
@@ -42,9 +44,10 @@ def find_synonyms(word):
             synonyms.add(lemma.name())
     return list(synonyms)
 
-def find_closest_sandwich_sk(input_to_match, match_list):
+
+def find_closest_sandwich_sk(item_to_match, match_possibilities_list=all_sandwiches):
     # Clean the user's input
-    user_input_clean = clean_text(input_to_match)
+    user_input_clean = clean_text(item_to_match)
 
     """Convert the sandwich names to TF-IDF vectors
 
@@ -65,7 +68,7 @@ def find_closest_sandwich_sk(input_to_match, match_list):
 
     # Initialize the vectorizer and fit it to the list of subs for our model
     vectorizer = TfidfVectorizer()
-    sandwich_vectors = vectorizer.fit_transform(match_list)
+    sandwich_vectors = vectorizer.fit_transform(match_possibilities_list)
 
     # Vectorize the user's input and compare it against the vectorized subs list
     user_vector = vectorizer.transform([user_input_clean])
@@ -74,6 +77,6 @@ def find_closest_sandwich_sk(input_to_match, match_list):
     # Find the highest score and return the corresponding sub by index
     best_match_index = similarity_scores.argmax()
     best_match_score = similarity_scores[best_match_index]
-    best_match = match_list[best_match_index]
+    best_match = match_possibilities_list[best_match_index]
 
     return best_match if best_match_score >= 0.5 else "No match found"
