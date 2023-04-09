@@ -214,3 +214,4 @@ pyrightconfig.json
 ../frontend-react/tsconfig.tsbuildinfo
 ../frontend-react/.tsbuildinfo
 ../frontend-react/next-env.d.ts
+/secret_functions.py
