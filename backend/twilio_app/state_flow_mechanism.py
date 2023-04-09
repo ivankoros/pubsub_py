@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from backend.resources import SubDeal
 from backend.resources import Users
 from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches, generate_user_info,
-                                        find_closest_sandwich, nearest_interval_time)
+                                        closest_string_match_fuzzy, nearest_interval_time, find_nearest_stores)
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
 
@@ -30,8 +30,8 @@ def start_action(*args):
     # Switches the user to the get_name state automatically
     # Might remove this later and just have the user initialized
     #   into the get_name state
-    message_back = state_info['get_name']['text_response']
-    message_back.append(f"Hey, welcome to Pubsub Py!")
+    message_back = [f"Hey, welcome to Pubsub Py!",
+                    state_info['get_name']['text_response']]
 
     return 'get_name', message_back
 
@@ -44,14 +44,53 @@ def get_name_action(body, session, user):
 
 
 def get_store_location_action(body, session, user):
-    # This will later be replaced with a function that gets the user's geolocation
-    #   and returns the nearest store using the find_nearest_stores function
-    #   and the Google Maps api
-    # But for now it just gets the user's address
+    nearest_stores = find_nearest_stores(body)
 
-    user.selected_store_address = body
-    session.commit()
-    return 'get_sale', state_info['get_sale']['text_response']
+    if len(nearest_stores) != 0:
+
+        # Save the nearest stores to the Users database under
+        #   by adding it to the user's nearest_stores column
+        user.nearest_stores = nearest_stores
+        session.commit()
+
+        message_back = f"Here are the nearest stores I found to {body}\n :"
+        for i, store in enumerate(nearest_stores):
+            message_back += f"{i + 1}. {store['name']}\n " \
+                            f"   Address: {store['address']}\n " \
+                            f"   Distance: {round(store['distance'])} meters\n "
+
+        message_back += "Which one would you like to order from? " \
+                        "If none of these are correct, say 'redo' and we can go back a step."
+        return 'confirm_store', message_back
+    else:
+        return 'get_location', 'No stores found near that location, give me another location' \
+                               'and I\'ll try to find some stores again.'
+
+
+def confirm_store_action(body, session, user):
+    """
+    :param body:
+    :param session:
+    :param user:
+    :return:
+    """
+    if 'redo' not in body:
+        if type(body) == int:
+            store = user.nearest_stores[int(body) - 1]
+            user.selected_store_address = store['address']
+            user.selected_store_name = store['name']
+            session.commit()
+            message = f"Great! I'll remember that you want to order from {store['name']}.\n"
+            return 'default', message
+        if type(body) == str:
+            store = closest_string_match_fuzzy(body, user.nearest_stores)
+            user.selected_store_address = store['address']
+            user.selected_store_name = store['name']
+            session.commit()
+            message = f"Great! I'll remember that you want to order from {store['name']}.\n"
+            return 'default', message
+    else:
+        return 'get_store_location', state_info['get_store_location']['text_response']
 
 
 def get_sale_action(body, session, *args):
@@ -71,6 +110,7 @@ def get_sale_action(body, session, *args):
 
     return 'default', message
 
+
 def default_action(message, *args):
     # If the user input is recognized, initialize the default state
     if "order" in message:
@@ -80,14 +120,14 @@ def default_action(message, *args):
     else:
         return 'default', state_info['default']['text_response']
 
-def order_sub_action(body, session, user, *args):
 
+def order_sub_action(body, session, user, *args):
     if 'exit' in body:
         return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
-    if find_closest_sandwich(body, all_sandwiches) != "No match found":
+    if closest_string_match_fuzzy(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
 
-        sandwich = find_closest_sandwich(body, all_sandwiches)
+        sandwich = closest_string_match_fuzzy(body, all_sandwiches)
         store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_address
         order_date = datetime.today().date().strftime("%A, %B %d, %Y")
         order_time = nearest_interval_time()
@@ -98,7 +138,7 @@ def order_sub_action(body, session, user, *args):
             requested_sub=sandwich,
             store_name=store_name,
             date_of_order=order_date,
-            time_of_order = order_time,
+            time_of_order=order_time,
             first_name=first_name,
             last_name=last_name,
             email=email,
@@ -115,8 +155,9 @@ def order_sub_action(body, session, user, *args):
 
         return 'order_sub', SubOrder.__str__(order)
     else:
-        return 'order_sub', [f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
-                            "default state"]
+        return 'order_sub', [
+            f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
+            " default state"]
 
 
 # This dictionary contains the state information for the state machine
@@ -134,6 +175,11 @@ state_info = {
     'get_store_location': {
         'text_response': TextResponses().get_response("get_store_location"),
         'action': get_store_location_action,
+        'next_states': ['get_sale']
+    },
+    'confirm_store': {
+        'text_response': "nothing, replace this",
+        'action': confirm_store_action,
         'next_states': ['get_sale']
     },
     'get_sale': {
