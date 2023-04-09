@@ -15,6 +15,17 @@ from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagn
 
 # Find/initialize the user
 def get_user(session):
+    """
+    This function finds the user in the database or creates a new user if they don't exist.
+     - If they don't exist, initialize them as a user in the database with their phone number
+        and their state as 'start'
+
+    Otherwise, just return the user class object, which contains all the user's information
+    which I can use to update the user's state and other information.
+
+    :param session: The database session (MySQL)
+    :return:        The user class object (contains all the user's information (phone number, name, etc.))
+    """
     phone_number = request.values.get("From")
     user = session.query(Users).filter(Users.phone_number == phone_number).first()
     if not user:
@@ -39,6 +50,17 @@ def start_action(*args):
 
 
 def get_name_action(body, session, user):
+    """
+    This function uses the body of the user's next message to get their name.
+
+    It treats the user's next message as their name and saves it to the database.
+
+    :param body:  The body of the user's message
+    :param session:  The database session
+    :param user:  The user class (containing all their info)
+    :return:     Putting them into the get_store_location state and calling its text
+                 responses
+    """
     # Get the user's name and save it to the database
     user.name = body
     session.commit()
