@@ -87,7 +87,10 @@ def confirm_store_action(body, session, user):
 
         if store is not None:
             user.selected_store_address = store['address']
-            user.selected_store_name = store['name']
+
+            remove_pattern = 'Publix Super Market at '
+            user.selected_store_name = store['name'].replace(remove_pattern, '').strip()
+
             session.commit()
             message = f"Great! I'll remember that you want to order from {store['name']}.\n"
 
