@@ -46,6 +46,10 @@ def get_name_action(body, session, user):
 
 
 def get_store_location_action(body, session, user):
+
+    # Here I'm calling the find_nearest_stores function to find the (default 3) nearest
+    # stores to the user's location with the Google Places and Geolocation APIs and Geopy.
+    # I'm passing in the user's given location as the argument.
     nearest_stores = find_nearest_stores(body)
 
     if len(nearest_stores) != 0:
@@ -55,6 +59,17 @@ def get_store_location_action(body, session, user):
         user.nearest_stores = nearest_stores
         session.commit()
 
+        """
+        This prints out nicely like this:
+        
+        Here are the nearest stores I found to 1234 Main St:
+         
+        1. Publix Super Market at Southgate Shopping Center
+           Address: 2515 Florida Ave S, Lakeland
+           Distance: 14 meters
+           
+           ...
+        """
         message_back = f"Here are the nearest stores I found to {body}\n :"
         for i, store in enumerate(nearest_stores):
             message_back += f"{i + 1}. {store['name']}\n " \
@@ -63,10 +78,11 @@ def get_store_location_action(body, session, user):
 
         message_back += "Which one would you like to order from? " \
                         "If none of these are correct, say 'redo' and we can go back a step."
-        return 'confirm_store', message_back
+
+        return "confirm_store", message_back
     else:
-        return 'get_location', 'No stores found near that location, give me another location' \
-                               'and I\'ll try to find some stores again.'
+        return "get_location", "No stores found near that location, give me another location' \
+                               'and I'll try to find some stores again."
 
 
 def confirm_store_action(body, session, user):
