@@ -172,6 +172,43 @@ def default_action(message, *args):
 
 
 def order_sub_action(body, session, user, *args):
+    """
+    This is the main important ordering function. It's called when the user is in the 'order_sub'
+    state.
+
+    1. If the user says 'exit', then they are taken back to the default state.
+
+    2. If the user does not say exit, I treat the user's input as a potential sub name
+        they're trying to say, and use fuzzy logic string matching to compare it against
+        all the sub names in the database. If there is a match above the cutoff (set default at 70%),
+        then I return the name of the sub. Otherwise, I return 'No match found', and prompt the user
+        to try again.
+
+    3. If there is a match, I create a class with the order information
+        - I use the user's sandwich request for the sub name
+        - I randomly generate a first name, last name, phone number, and email for the order
+        - I use the user's preferred store name and address to select the store location from the
+            Publix website HTML in Selenium.
+        - I generate the date as today and the time with my custom function to find the soonest
+            available time Publix will have. This is described below with examples
+
+    4. I then pass this SubOrder class with all the order info needed into the order_sub function,
+        which automates the ordering with Selenium. However, this takes about 40 seconds to run,
+        so I use the threading module to run it in a separate thread.
+
+    5. Feedback of the user's confirmed order is returned to the user instantly after ordering.
+        Because I've passed the order_sub function into a separate thread, the user doesn't have
+        to wait for the order to be placed. All the order info that I would need to send to the
+        user is saved in the SubOrder class, so I can just return that info to the user with the
+        __str__ method set up in the class.
+
+
+    :param body: The user's text
+    :param session:  The database session (MySQL)
+    :param user:  The user's database entry
+    :param args:  Any other arguments
+    :return:  Order feedback message
+    """
     if 'exit' in body:
         return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
@@ -183,6 +220,21 @@ def order_sub_action(body, session, user, *args):
             Users.phone_number == user.phone_number).first().selected_store_address
         order_date = datetime.today().date().strftime("%A, %B %d, %Y")
         order_time = nearest_interval_time()
+
+        """ What is nearest_interval_time()?
+        
+            This is my custom function to get the nearest 30 minute interval 
+            with a five minute buffer. This is the time that the Publix will 
+            Schedule the order for.
+            
+            This is not arbitrary, I figured out how the time for soonest order
+            possible is calculated by Publix and this is my implementation of it.
+            
+            Examples:
+             - ordering at 12:02 PM will give a pickup time of 12:30 PM
+             - ordering at 12:06 PM will give a pickup time of 12:40 PM
+                
+        """
 
         first_name, last_name, email, phone_number = generate_user_info()
 
