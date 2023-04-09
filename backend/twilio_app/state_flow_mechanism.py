@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime, timedelta
 from flask import Flask, Response, request
 from concurrent.futures import ThreadPoolExecutor
+import re
 
 from backend.resources import SubDeal
 from backend.resources import Users
@@ -20,6 +21,7 @@ def get_user(session):
         user = Users(phone_number=phone_number,
                      name=None,
                      selected_store_address=None,
+                     selected_store_name=None,
                      state='start')
         session.add(user)
         session.commit()
@@ -74,21 +76,25 @@ def confirm_store_action(body, session, user):
     :param user:
     :return:
     """
+
     if 'redo' not in body:
-        if type(body) == int:
-            store = user.nearest_stores[int(body) - 1]
-            user.selected_store_address = store['address']
-            user.selected_store_name = store['name']
-            session.commit()
-            message = f"Great! I'll remember that you want to order from {store['name']}.\n"
-            return 'default', message
-        if type(body) == str:
+        store = None
+        if re.match(r'^\d+$', body):
+            body = int(body)
+            store = user.nearest_stores[body - 1]
+        elif isinstance(body, str):
             store = closest_string_match_fuzzy(body, user.nearest_stores)
+
+        if store is not None:
             user.selected_store_address = store['address']
             user.selected_store_name = store['name']
             session.commit()
             message = f"Great! I'll remember that you want to order from {store['name']}.\n"
-            return 'default', message
+
+            messages = [(state_info['get_store_location']['text_response']), message]
+
+            return 'default', messages
+
     else:
         return 'get_store_location', state_info['get_store_location']['text_response']
 
@@ -128,7 +134,9 @@ def order_sub_action(body, session, user, *args):
     if closest_string_match_fuzzy(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
 
         sandwich = closest_string_match_fuzzy(body, all_sandwiches)
-        store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_address
+        store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_name
+        store_address = session.query(Users).filter(
+            Users.phone_number == user.phone_number).first().selected_store_address
         order_date = datetime.today().date().strftime("%A, %B %d, %Y")
         order_time = nearest_interval_time()
 
@@ -137,6 +145,7 @@ def order_sub_action(body, session, user, *args):
         order = SubOrder(
             requested_sub=sandwich,
             store_name=store_name,
+            store_address=store_address,
             date_of_order=order_date,
             time_of_order=order_time,
             first_name=first_name,
@@ -156,7 +165,7 @@ def order_sub_action(body, session, user, *args):
         return 'order_sub', SubOrder.__str__(order)
     else:
         return 'order_sub', [
-            f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the" \
+            f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the"
             " default state"]
 
 
