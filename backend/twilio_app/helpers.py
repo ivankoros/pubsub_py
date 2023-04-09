@@ -10,25 +10,29 @@ from fuzzywuzzy import process
 from geopy.distance import geodesic
 
 
-# These are the text responses that I'm using in a class
+"""Static text responses for the bot to send to the user.
+
+    Using the state machine, I can send different messages
+    to the user depending on the state. This is a dictionary
+    of lists of strings. The keys are the states, and the values
+    are the messages that will be sent to the user. 
+        
+"""
+
+# TODO change this to add methods so a class can be used to
+#  put in dynamic messages with f strings
 class TextResponses:
     def __init__(self):
         self.text_responses = {
-            "start": ["Welcome to Sub Deals!.",
-                      "Welcome to Sub Deals!."],
-            "get_name": ["What's your name?",
-                         "What should I call you?"],
-            "get_store_location": ["What's your address?",
-                                   "Let me know your general location so I can find the nearest store.",
-                                   "What's your nearest intersection or landmark?",
-                                   "Please provide a nearby street name or general address."
-                                   ],
-            "get_sale": ["What's on sale today?",
-                         "What subs are on sale today?"],
-            "default": ["You're in the default state",
-                        "You're in the default state"],
-            "help": ["Ask me 'any deals today?' to see what subs are on sale today.",
-                     "Ask 'what's on sale' to see what on sale today.",
+            "start": ["Hey! Glad you've chosen to check out Pubsub Py!"],
+            "get_name": ["Can I have your name to start? :)"],
+            "get_store_location": ["Let's find your nearest Publix.",
+                                   "Give me a location (St. John's Town Center, Jacksonville) "
+                                   "or an address (4663 River City Dr) and I'll find the nearest stores."],
+            "get_sale": ["Which subs are on sale today?"],
+            "default": ["You're in the default state"],
+            "help": ["Ask 'any deals today?' to see today's sub deals.",
+                     "Ask 'what's on sale' to see what's on sale today.",
                      "Ask me what's on sale right now to get today's sub deals"],
             "no_sale": "There are no subs on sale today.",
             "error": "Sorry, I don't understand.",
@@ -39,19 +43,20 @@ class TextResponses:
                             "on sale right now",
                             "today's deals",
                             "today's deal"],
-            "order_sub": ["You would like to order a sub.",
-                          "You would like to order a sub."]
+            "order_sub": ["You would like to order a sub."]
         }
 
     def get_response(self, response):
-        return random.choice(self.text_responses[response])
+        #return random.choice(self.text_responses[response])
+        return self.text_responses[response]
 
 
 class SubOrder:
-    def __init__(self, requested_sub, store_name, date_of_order, first_name,
+    def __init__(self, requested_sub, store_name, store_address, date_of_order, first_name,
                  last_name, email, phone_number, time_of_order):
         self.requested_sub = requested_sub
         self.store_name = store_name
+        self.store_address = store_address
         self.date_of_order = date_of_order
         self.time_of_order = time_of_order
         self.first_name = first_name
@@ -141,13 +146,14 @@ def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_inte
 
     return formatted_time
 
-def closest_string_match_fuzzy(item_to_match, match_possibilities_list):
+def closest_string_match_fuzzy(item_to_match, match_possibilities_list, match_threshold=70):
     # Find the best match using fuzzy string matching
     best_match, score = process.extractOne(item_to_match, match_possibilities_list)
 
-    if score >= 70:
+    if score >= match_threshold:
         return best_match
     else:
+        # Todo change this to a boolean and update the functions its in
         return "No match found"
 
 
