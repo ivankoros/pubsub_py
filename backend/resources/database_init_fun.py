@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -29,14 +29,18 @@ class Users(Base):
     phone_number = Column(String(255))
     name = Column(String(255))
     selected_store_address = Column(String(255))
+    selected_store_name = Column(String(255))
     state = Column(String(45),
                    default='start')
+    nearest_stores = Column(JSON)
 
-    def __init__(self, phone_number, name, selected_store_address, state):
+    def __init__(self, phone_number, name, selected_store_address, selected_store_name, state):
         self.phone_number = phone_number
         self.name = name
         self.selected_store_address = selected_store_address
+        self.selected_store_name = selected_store_name
         self.state = state
+        self.nearest_stores = []
 def initialize_database():
     """Initialize MySQL database
 
