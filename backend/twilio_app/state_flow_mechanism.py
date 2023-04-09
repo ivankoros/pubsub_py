@@ -71,14 +71,29 @@ def get_store_location_action(body, session, user):
 
 def confirm_store_action(body, session, user):
     """
-    :param body:
-    :param session:
-    :param user:
-    :return:
-    """
+            There are two conditions that need to be checked here:
+                1. If the user's input is a number, then it's referring to the index of the store
+                    in the list of nearest stores. However, all texts come in as a string. Therefore
+                    I use regex here to check if the string is a number.
 
+                    If it is a number, then I convert it to an integer and use that to index the
+                    list of nearest stores.
+
+                2. If the user's input is a string, then it's referring to the name of the store.
+                    I use fuzzy string matching to find the closest match to the user's input. By
+                    comparing the user's input to the top three store names I gave them.
+
+                If either of these are satisfied, their preferred store location is picked and saved
+                to the database.
+
+                Otherwise, the user is prompted to select again, or say 'redo'.
+
+                If they say 'redo', then they are prompted to enter a new location as well.
+
+            """
     if 'redo' not in body:
         store = None
+
         if re.match(r'^\d+$', body):
             body = int(body)
             store = user.nearest_stores[body - 1]
@@ -87,7 +102,14 @@ def confirm_store_action(body, session, user):
 
         if store is not None:
             user.selected_store_address = store['address']
-
+            """
+            The store name coming from the Google Places API always comes in as:
+              'Publix Super Market at <store name>'
+            
+            This causes problems because I use the store name to select the store location
+            from the Publix website HTML in Selenium. So, I use regex to remove the
+            'Publix Super Market at ' part of the store name. 
+            """
             remove_pattern = 'Publix Super Market at '
             user.selected_store_name = store['name'].replace(remove_pattern, '').strip()
 
@@ -99,7 +121,10 @@ def confirm_store_action(body, session, user):
             return 'default', messages
 
     else:
-        return 'get_store_location', state_info['get_store_location']['text_response']
+        message = ['I didn\'t get that, let\'s try that again. What\'s your preferred?',
+                   'You can also say \'redo\' to search for a new location.']
+
+        return 'confirm_store_location', message
 
 
 def get_sale_action(body, session, *args):
