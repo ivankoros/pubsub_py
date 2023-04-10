@@ -94,7 +94,9 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
         pass
 
     # Store location input
-    official_location_name = webdriver_location_input(driver, self)
+    official_location_name = webdriver_location_input(driver,
+                                                      store_name=self.store_name,
+                                                      store_address=self.store_address)
 
     # Choose requested sub from sub list
     requested_sub = self.requested_sub.strip()
@@ -233,7 +235,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
 
 if __name__ == '__main__':
-    order = SubOrder(requested_sub="Publix Vegi Sub",
+    order = SubOrder(requested_sub="Publix Veggie Sub",
                      store_name="St. John's Town Center",
                      store_address='4413 Town Center Pkwy #100, Jacksonville',
                      date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"),
