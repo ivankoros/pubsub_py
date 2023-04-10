@@ -30,25 +30,21 @@ class TextResponses:
                                    "Give me a location (St. John's Town Center, Jacksonville) "
                                    "or an address (4663 River City Dr) and I'll find the nearest stores."],
             "get_sale": ["Which subs are on sale today?"],
-            "default": ["You're in the default state"],
+            "default": ["Hey! You can ask me what's on sale today "
+                        "or say 'order' to start ordering a sub :)"],
             "help": ["Ask 'any deals today?' to see today's sub deals.",
                      "Ask 'what's on sale' to see what's on sale today.",
                      "Ask me what's on sale right now to get today's sub deals"],
-            "no_sale": "There are no subs on sale today.",
-            "error": "Sorry, I don't understand.",
-            "sale_prompt": ["deal",
-                            "sale",
-                            "on sale",
-                            "on sale today",
-                            "on sale right now",
-                            "today's deals",
-                            "today's deal"],
+            "no_sale": ["There are no subs on sale today."],
+            "error": ["Sorry, I don't understand."],
             "order_sub": ["You would like to order a sub."]
         }
 
     def get_response(self, response):
-        #return random.choice(self.text_responses[response])
         return self.text_responses[response]
+
+    def get_random_response(self, response):
+        return random.choice(self.text_responses[response])
 
 
 class SubOrder:
@@ -105,7 +101,7 @@ def generate_user_info():
     test the app with different names and emails to make sure it's working properly.
 
     """
-    suffix_options = ['McGee', 'Yeo', 'Von Humperdink', 'Von Schnitzel',
+    suffix_options = ['McGee', 'Von Humpdink', 'Von Schnitzel',
                       '', '', '', '', '', '', '', '', '', '','']
 
     first_name_options = ['Wilfred', 'Skipps', 'Rigby', 'Vlad', 'Derwin', 'Yertle', 'Balthazar', 'Bartholomew', 'Looie',
