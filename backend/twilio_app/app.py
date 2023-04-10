@@ -4,6 +4,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from backend.resources import initialize_database
 from backend.twilio_app.state_flow_mechanism import get_user, state_info
 from backend.resources import Users
+from playsound import playsound
 
 app = Flask(__name__)
 api = Api(app)
@@ -25,6 +26,8 @@ def incoming_sms():
     """
     user = get_user(session)
     print(f"user says: {request.values.get('Body', '')}")
+
+    playsound("../resources/sfx/scs.wav")
 
     """Use my state flow mechanism to determine what to do next:
         - What message to send back to the user?
@@ -93,6 +96,7 @@ def incoming_sms():
         
     """
     action = state_info[user.state]['action']
+
     args = [request.values.get("Body", ""), session, user]
 
     # Execute the action and update the user state
