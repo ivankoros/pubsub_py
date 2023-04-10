@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-def webdriver_location_input(driver, self):
+def webdriver_location_input(driver, store_name, store_address):
     """Choosing store location
 
     This code above is needed because we initially block our location services.
@@ -13,10 +13,10 @@ def webdriver_location_input(driver, self):
     """
     location_selection_textbox_path = '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input'
 
-    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(self.store_address)
+    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(store_address)
     driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(u'\ue007')  # Press enter
 
-    location_address = f'//button[@aria-label="Choose {self.store_name} as your store"]'
+    location_address = f'//button[@aria-label="Choose {store_name} as your store"]'
     print(location_address)
 
     correct_store_choose_option = WebDriverWait(driver, 10).until(
