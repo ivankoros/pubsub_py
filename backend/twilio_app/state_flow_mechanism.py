@@ -11,6 +11,7 @@ from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches,
                                         closest_string_match_fuzzy, nearest_interval_time, find_nearest_stores)
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
+from backend.selenium_app.query_deals import main as query_deals
 
 
 # Find/initialize the user
@@ -148,11 +149,11 @@ def confirm_store_action(body, session, user):
             body = int(body)
             store = user.nearest_stores[body - 1]
         else:
-            store = closest_string_match_fuzzy(body, [store['name'] for store in user.nearest_stores])
+            store = find_closest_sandwich_sk(body, [store['name'] for store in user.nearest_stores])
             store = next((s for s in user.nearest_stores if s['name'] == store), None)
             print(store)
 
-        if store != "No match found":
+        if store:
             user.selected_store_address = store['address']
             """
             The store name coming from the Google Places API always comes in as:
@@ -186,7 +187,7 @@ def get_sale_action(body, session, *args):
     pass
 
 
-def default_action(message, session, *args):
+def default_action(message, session, user, *args):
     # If the user input is recognized, initialize the default state
     if "order" in message.lower():
         return 'order_sub', ["You're ready to order for quick pickup, go ahead and tell me what you want to order "
@@ -198,19 +199,21 @@ def default_action(message, session, *args):
         # Check if there are any sales today and return the corresponding message
         today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
-        # If there is one sale, return the name of the sub
-        match len(today_sales):
-            case 1:
-                message = "The " + today_sales[0].name.lower() + " is on sale today!"
-            case 0:
-                message = TextResponses().get_response("no_sale")
-            case _:
-                message = f"The {''.join([sale.name.lower() + ', ' for sale in today_sales])[:-2]}" \
-                          f" are on sale today!"
+        if not today_sales:
+            query_deals(store_name=user.selected_store_name,
+                        store_address=user.selected_store_address)
 
-                messages = ["Let's see what's on sale today!", message]
+            today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
-        return 'default', ["Let's see what's on sale today!"]
+        if len(today_sales) == 1:
+            message = "The " + today_sales[0].name.lower() + " is on sale today!"
+        else:
+            message = f"The {', '.join([sale.name.lower() for sale in today_sales][:-1])}, " \
+                      f"and {today_sales[-1].name.lower()} are on sale today!"
+
+        messages = ["Let's see what's on sale today!", message]
+
+        return 'default', messages
     else:
         return 'default', state_info['default']['text_response']
 
