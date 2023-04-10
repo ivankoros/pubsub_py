@@ -106,17 +106,17 @@ def get_store_location_action(body, session, user):
             message_back += f"{i + 1}. {store['name']}\n " \
                             f"   Address: {store['address']}\n "
 
-        messages = ["Which one would you like to order from? "
-                    "You can give a number (1) or verbal confirmation (Yea, St. John's) "
-                    "If none of these are correct, say 'redo' and we'll go back a step. "] + \
-                   [message_back]
+        messages = [message_back] + \
+                   ["Which one would you like to order from? "
+                    "You can give a number (1) or text confirmation (Yea, St. John's) "
+                    "If none of these are correct, say 'redo' and we'll go back a step. "]
 
         return "confirm_store", messages
     else:
         message_back = ["I didn't find any stores near that location, give me another location "
                         "and I'll try again to find some stores."]
 
-        return "get_location", message_back
+        return "get_store_location", message_back
 
 
 def confirm_store_action(body, session, user):
@@ -148,10 +148,11 @@ def confirm_store_action(body, session, user):
             body = int(body)
             store = user.nearest_stores[body - 1]
         else:
-            store = closest_string_match_fuzzy(body, user.nearest_stores)
+            store = closest_string_match_fuzzy(body, [store['name'] for store in user.nearest_stores])
+            store = next((s for s in user.nearest_stores if s['name'] == store), None)
             print(store)
 
-        if store is not None:
+        if store != "No match found":
             user.selected_store_address = store['address']
             """
             The store name coming from the Google Places API always comes in as:
@@ -167,15 +168,18 @@ def confirm_store_action(body, session, user):
 
             messages = [f"Great! I'll remember that you want to order from {store['name']}.",
                         "You're all set! You can ask me what's on sale to get deals from "
-                        "your store or say 'order' to start ordering a sub."]
+                        "your store or say 'order' to put in an order."]
 
             return 'default', messages
 
+        else:
+            message = ["I didn't get that. You can give a number (1) or text confirmation (Yea, St. John's Town Center)",
+                       "You can also say 'redo' to search for a new location."]
+            return 'confirm_store', message
     else:
-        message = ["I didn't get that. You can give a number (1) or verbal confirmation (Yea, St. John's)",
-                   "You can also say 'redo' to search for a new location."]
+        message = ["Okay, let's try that again. Give me a location and I'll find the nearest stores."]
+        return 'get_store_location', message
 
-        return 'confirm_store', message
 
 
 def get_sale_action(body, session, *args):
@@ -204,7 +208,9 @@ def default_action(message, session, *args):
                 message = f"The {''.join([sale.name.lower() + ', ' for sale in today_sales])[:-2]}" \
                           f" are on sale today!"
 
-        return 'get_sale', ["Let's see what's on sale today!"]
+                messages = ["Let's see what's on sale today!", message]
+
+        return 'default', ["Let's see what's on sale today!"]
     else:
         return 'default', state_info['default']['text_response']
 
@@ -296,7 +302,7 @@ def order_sub_action(body, session, user, *args):
         loop.run_in_executor(ThreadPoolExecutor(1), submit_order)
         loop.close()
 
-        return 'order_sub', SubOrder.__str__(order)
+        return 'default', SubOrder.__str__(order)
     else:
         return 'order_sub', [
             f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the"
