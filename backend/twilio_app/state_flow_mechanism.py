@@ -106,11 +106,12 @@ def get_store_location_action(body, session, user):
             message_back += f"{i + 1}. {store['name']}\n " \
                             f"   Address: {store['address']}\n "
 
-        message_back += "Which one would you like to order from? " \
-                        "You can give a number (1) or verbal confirmation (Yea, St. John's) " \
-                        "If none of these are correct, say 'redo' and we'll go back a step. "
+        messages = ["Which one would you like to order from? "
+                    "You can give a number (1) or verbal confirmation (Yea, St. John's) "
+                    "If none of these are correct, say 'redo' and we'll go back a step. "] + \
+                   [message_back]
 
-        return "confirm_store", message_back
+        return "confirm_store", messages
     else:
         message_back = ["I didn't find any stores near that location, give me another location "
                         "and I'll try again to find some stores."]
@@ -146,8 +147,9 @@ def confirm_store_action(body, session, user):
         if re.match(r'^\d+$', body):
             body = int(body)
             store = user.nearest_stores[body - 1]
-        elif isinstance(body, str):
+        else:
             store = closest_string_match_fuzzy(body, user.nearest_stores)
+            print(store)
 
         if store is not None:
             user.selected_store_address = store['address']
@@ -163,8 +165,9 @@ def confirm_store_action(body, session, user):
             user.selected_store_name = store['name'].replace(remove_pattern, '').strip()
             session.commit()
 
-            messages = [f"Great! I'll remember that you want to order from {store['name']}."] + \
-                       state_info['default']['text_response']
+            messages = [f"Great! I'll remember that you want to order from {store['name']}.",
+                        "You're all set! You can ask me what's on sale to get deals from "
+                        "your store or say 'order' to start ordering a sub."]
 
             return 'default', messages
 
@@ -176,29 +179,32 @@ def confirm_store_action(body, session, user):
 
 
 def get_sale_action(body, session, *args):
-    # Check if there are any sales today and return the corresponding message
-    today = datetime.today().date()
-    sales = session.query(SubDeal).filter(SubDeal.date == today).all()
-
-    # If there is one sale, return the name of the sub
-    match len(sales):
-        case 1:
-            message = "The " + sales[0].name.lower() + " is on sale today!"
-        case 0:
-            message = TextResponses().get_response("no_sale")
-        case _:
-            message = f"The {''.join([sale.name.lower() + ', ' for sale in sales])[:-2]}" \
-                      f" are on sale today!"
-
-    return 'default', message
+    pass
 
 
-def default_action(message, *args):
+def default_action(message, session, *args):
     # If the user input is recognized, initialize the default state
-    if "order" in message:
-        return 'order_sub', "You triggered the order sub action state. " \
-                            "Say a sub name to order a sub. " \
-                            "Say 'exit' to go back to the default state."
+    if "order" in message.lower():
+        return 'order_sub', ["You're ready to order for quick pickup, go ahead and tell me what you want to order "
+                             "and your order will be ready for pickup in 30 minutes.\n\n"
+                             "Example: 'I really feeling a hot meatball sub with provolone'",
+                             "You can also say 'exit' to go back."]
+
+    if "sale" or "deal" in message.lower():
+        # Check if there are any sales today and return the corresponding message
+        today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
+
+        # If there is one sale, return the name of the sub
+        match len(today_sales):
+            case 1:
+                message = "The " + today_sales[0].name.lower() + " is on sale today!"
+            case 0:
+                message = TextResponses().get_response("no_sale")
+            case _:
+                message = f"The {''.join([sale.name.lower() + ', ' for sale in today_sales])[:-2]}" \
+                          f" are on sale today!"
+
+        return 'get_sale', ["Let's see what's on sale today!"]
     else:
         return 'default', state_info['default']['text_response']
 
