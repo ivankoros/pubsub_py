@@ -81,7 +81,7 @@ def find_sub_parent(element, session, location):
         element = parent
 
 
-def main():
+def main(store_name, store_address):
 
     # Create the database
     session = initialize_database()
@@ -106,7 +106,6 @@ def main():
 
     # Get the link to the subs page and go to the webpage
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    time.sleep(random.randint(2, 5))
 
     try:
         accept_button = driver.find_element(By.XPATH,
@@ -118,8 +117,9 @@ def main():
     except:
         pass
 
-    location = 'St. John\'s Town Center'
-    webdriver_location_input(driver, location)
+    webdriver_location_input(driver=driver,
+                             store_name=store_name,
+                             store_address=store_address)
 
     # Find all the elements that contain the word "Save"
     saving_elements_by_class = find_saving_elements(driver)
@@ -129,10 +129,10 @@ def main():
     deals = [each for each in saving_elements_by_class if "Save" in each.text]
 
     for item in deals:
-        find_sub_parent(item, session, location)
+        find_sub_parent(item, session, store_name)
 
     driver.quit()
 
 
 if __name__ == '__main__':
-    main()
+    main(store_name="Deerwood Lake Commons", store_address="4320 Deerwood Lake Pkwy, Jacksonville")
