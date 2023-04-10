@@ -1,4 +1,3 @@
-import time
 from flask import Flask, Response, request
 from flask_restful import Resource, Api
 from twilio.twiml.messaging_response import MessagingResponse
@@ -46,7 +45,7 @@ def incoming_sms():
         
         Then, I pass the arguments into the action functions, with 
         a star in front of the arguments. This is called 'unpacking' and
-        it allows me to pass in the arguments as a list. I do this becase
+        it allows me to pass in the arguments as a list. I do this because
         each action function may take a different number of arguments, and
         this way I don't have to change the code for each action function if
         I choose to add or remove arguments.
@@ -117,18 +116,14 @@ def incoming_sms():
     """
 
     def reply_all_messages(messages_to_send):
-        if type(messages_to_send) == str:
+        if isinstance(messages_to_send, str):
             resp.message(messages_to_send)
         else:
             for m in messages_to_send:
                 resp.message(m)
 
-    match next_state:
-        case 'get_store_location':
-            reply_all_messages(message)
-        case _:
-            print(f"message back to user: {message}")
-            reply_all_messages(message)
+    print(f"message back to user: {message}")
+    reply_all_messages(message)
 
     return Response(str(resp), mimetype="application/xml")
 
@@ -139,6 +134,7 @@ class UserData(Resource):
         This is the rest API I will use to server my React app later.
 
     """
+
     def get(self):
         session = initialize_database()
         users = session.query(Users).all()
@@ -156,10 +152,11 @@ class UserData(Resource):
             users_dict["users"].append(user_dict)
         return users_dict
 
+
 # Adding the API on the '/' endpoint for requests to access.
 api.add_resource(UserData, '/')
 
 if __name__ == "__main__":
     app.run(debug=True,
             host="0.0.0.0",
-            port=7000)
+            port=8000)
