@@ -190,12 +190,12 @@ def get_sale_action(body, session, *args):
 def default_action(message, session, user, *args):
     # If the user input is recognized, initialize the default state
     if "order" in message.lower():
-        return 'order_sub', ["You're ready to order for quick pickup, go ahead and tell me what you want to order "
-                             "and your order will be ready for pickup in 30 minutes.\n\n"
-                             "Example: 'I really feeling a hot meatball sub with provolone'",
+        return 'order_sub', ["You're all set to order for quick pickup. Give me an order "
+                             "and it'll be ready for pickup in 30 minutes.\n\n"
+                             "Example: 'Let me get a hot meatball sub with provolone'",
                              "You can also say 'exit' to go back."]
 
-    if "sale" or "deal" in message.lower():
+    elif "sale" in message.lower() or "deal" in message.lower():
         # Check if there are any sales today and return the corresponding message
         today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
@@ -214,6 +214,7 @@ def default_action(message, session, user, *args):
         messages = ["Let's see what's on sale today!", message]
 
         return 'default', messages
+
     else:
         return 'default', state_info['default']['text_response']
 
@@ -307,9 +308,12 @@ def order_sub_action(body, session, user, *args):
 
         return 'default', SubOrder.__str__(order)
     else:
+        import random
+        random_sandwiches = [random.choice(all_sandwiches) for _ in range(3)]
         return 'order_sub', [
-            f"you said: {body}, that is not a recognized sub name. say a sub name to order a sub. say 'exit' to go back to the"
-            " default state"]
+            f"I don't recognize that as a sub, try again. Some examples include:\n\n"
+            f"The {random_sandwiches[0].lower()}, the {random_sandwiches[1].lower()}, and the {random_sandwiches[2].lower()}.",
+            f"You can also say 'exit' to exit ordering"]
 
 
 # This dictionary contains the state information for the state machine
