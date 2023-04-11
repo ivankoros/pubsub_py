@@ -182,7 +182,9 @@ def find_nearest_stores(location, result_count=3):
             places.append({
                 "name": place['name'],
                 "address": place['vicinity'],
-                "distance": distance_from_user
+                "distance": distance_from_user,
+                "latitude": place_coordinates['lat'],
+                "longitude": place_coordinates['lng']
             })
 
     # Sort the results by distance from the user
