@@ -4,6 +4,11 @@ from nltk.corpus import stopwords, wordnet
 from backend.twilio_app.helpers import all_sandwiches
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import openai
+import os
+import ast
+from pprint import pprint
+from dotenv import load_dotenv
 
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -80,3 +85,55 @@ def find_closest_sandwich_sk(item_to_match, match_possibilities_list=all_sandwic
     best_match = match_possibilities_list[best_match_index]
 
     return best_match if best_match_score >= 0.5 else "No match found"
+
+def get_order(user_order_text):
+
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 'config\\.env'))
+
+    load_dotenv(dotenv_path=ROOT_DIR,
+                override=True)
+
+    openai.api_key = os.getenv("OPEN_AI_API_KEY")
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Based on the following list of customization options: \n"
+                "Size: Half, Whole \n"
+                "Bread: Italian 5 Grain, White, Whole Wheat, Flatbread, No Bread (Make it a Salad) - Lettuce Base, No Bread (Make it a Salad) - Spinach Base\n"
+                "Cheese: Pepper Jack, Cheddar, Muenster, Provolone, Swiss, White American, Yellow American, No Cheese\n"
+                "Extras: Double Meat, Double Cheese, Bacon, Guacamole, Hummus, Avocado\n"
+                "Toppings: Banana Peppers, Black Olives, Boar's Head Garlic Pickles, Cucumbers, Dill Pickles, Green Peppers, Jalapeno Peppers, Lettuce, Onions, Spinach, Tomato, Salt, Black Pepper, Oregano, Oil & Vinegar Packets\n"
+                "Condiments: Boar's Head Honey Mustard, Boar's Head Spicy Mustard, Mayonnaise, Yellow Mustard, Vegan Ranch Dressing, Buttermilk Ranch, Boar's Head Sub Dressing, Boar's Head Pepperhouse Gourmaise, Boar's Head Chipotle Gourmaise, Deli Sub Sauce\n"
+                "Heating Options: Pressed, Toasted, No Thanks\n"
+                "Make it a Combo: Yes, No Thanks\n"
+                "\n"
+                "If a field is not specified, reply with 'None' Only. There should only be 8 category outputs, absolutely no more. If there are duplicates (for example, "
+                " two 'condiments' rows), consolidate them.\n"
+                "If a user has 'packets' in their message, they want the 'Oil & Vinegar Packets' topping\n"
+                "Follow this rule strictly: Return customization options exactly as they appear in the text. For example 'sub oil' should return 'Deli Sub Sauce'\n"
+                "\n"
+                "Give back a list of selected customization options from the user's text input, which is a sandwich order\n\n"
+                "Return the list back as a Python dictionary, with the keys being the category and the values being the selected options. \n"
+            ),
+        },
+        {"role": "user", "content": f"Sandwich order: {user_order_text}"}
+    ]
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        temperature=0.1,
+    )
+
+    response = completion.choices[0].message['content']
+
+    try:
+        print(f"Order: {user_order_text}")
+        print(f"String respoonse: {response}")
+        print("\n")
+        pprint(ast.literal_eval(response))
+        return ast.literal_eval(response)
+    except (ValueError, SyntaxError) as e:
+        print("Error:", e)
