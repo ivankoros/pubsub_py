@@ -3,6 +3,7 @@ from backend.resources import initialize_database
 import requests
 import html
 from pprint import pprint
+import re
 
 def query_deals(store_id, sort_by_term="onsalemsg"):
     """
@@ -39,7 +40,7 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     for product in decoded_data['Products']:
         if product['onsalemsg'] == 'On Sale':
             name = html.unescape(product['title'])
-            price = product['priceline1']
+            price = re.sub("Starts At ", "", product['priceline1'])
             product_id = product['Productid']
 
             sale_entry = {'name': name, 'price': price, 'product_id': product_id}
@@ -60,7 +61,7 @@ def find_nearest_publix(zip_code):
             "count": "5",
             "includeOpenAndCloseDates": "true",
             "isWebsite": "true",
-            "zipCode": 32224,
+            "zipCode": zip_code,
         },
     )
 
