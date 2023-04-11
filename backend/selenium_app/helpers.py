@@ -1,6 +1,9 @@
+import logging
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
 
 def webdriver_location_input(driver, store_name, store_address):
     """Choosing store location
@@ -14,11 +17,11 @@ def webdriver_location_input(driver, store_name, store_address):
     location_selection_textbox_path = '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input'
 
     driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(store_address)
+    logging.info(f'Entered address: {store_address}')
     driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(u'\ue007')  # Press enter
-
+    logging.info('Pressed enter')
     location_address = f'//button[@aria-label="Choose {store_name} as your store"]'
-    print(location_address)
-
+    logging.info(f'Looking for store: {store_name}')
     correct_store_choose_option = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, location_address))
     )
@@ -29,7 +32,38 @@ def webdriver_location_input(driver, store_name, store_address):
     header_element = store_element.find_element(By.CSS_SELECTOR, '.store-info .title-wrapper h3')
 
     correct_store_choose_option.click()
-
+    logging.info(f'Clicked on store: {store_name}')
     official_location_name = header_element.text
 
     return official_location_name
+
+
+def input_customizations(driver):
+    custom_dict = {'Bread': 'Whole Wheat',
+                   'Cheese': 'Swiss',
+                   'Condiments': "Boar's Head Honey Mustard",
+                   'Extras': 'Hummus',
+                   'Heating Options': 'Toasted',
+                   'Make it a Combo': 'None',
+                   'Size': 'Half',
+                   'Toppings': 'Banana Peppers, Dill Pickles, Lettuce, Oil & Vinegar Packets'}
+
+    for key, value in custom_dict.items():
+        # Find the label element for the customization
+        label_element_xpath = f"//label[contains(text(), '{key}')]"
+        label_element = driver.find_element(By.XPATH, label_element_xpath)
+
+        # Find the customization element within the label element
+        customization_element = label_element.find_element(By.XPATH, './following-sibling::div')
+
+        # Find the customization option element within the customization element
+        customization_option_element_xpath = f"//label[contains(text(), '{value}')]"
+        customization_option_element = customization_element.find_element(By.XPATH, customization_option_element_xpath)
+
+        # Click on the customization option element
+        customization_option_element.click()
+
+    whole_element_xpath = "//p[contains(text(), 'Whole')]/ancestor::label"
+    driver.find_element(By.XPATH, whole_element_xpath).click()
+
+    pass
