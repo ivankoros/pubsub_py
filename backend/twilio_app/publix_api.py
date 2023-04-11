@@ -2,6 +2,7 @@ from backend.resources import SubDeal
 from backend.resources import initialize_database
 import requests
 import html
+from pprint import pprint
 
 def query_deals(store_id, sort_by_term="onsalemsg"):
     """
@@ -24,6 +25,19 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
 
     decoded_data = response.json()
 
+    sale_dict = []
+
+    for product in decoded_data['Products']:
+        if product['onsalemsg'] == 'On Sale':
+            name = html.unescape(product['title'])
+            price = product['priceline1']
+            product_id = product['Productid']
+
+            sale_entry = {'name': name, 'price': price, 'product_id': product_id}
+            sale_dict.append(sale_entry)
+
+    pprint(sale_dict)
+    return sale_dict
 
 
 if __name__ == '__main__':
