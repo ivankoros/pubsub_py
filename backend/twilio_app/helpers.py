@@ -1,8 +1,6 @@
 import googlemaps
 import random
-import requests
 import os
-from dotenv import load_dotenv
 from twilio.rest import Client
 import pytz
 from datetime import datetime, timedelta
@@ -354,3 +352,6 @@ all_sandwiches = [
     "Boar's Head Cracked Pepper Turkey Wrap",
     "Publix Deli Meatless Philly Sub Hot"
 ]
+
+if __name__ == 'main':
+    print('Hello World!')
