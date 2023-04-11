@@ -6,6 +6,7 @@ import pytz
 from datetime import datetime, timedelta
 from fuzzywuzzy import process
 from geopy.distance import geodesic
+import geopy
 
 
 """Static text responses for the bot to send to the user.
@@ -200,6 +201,27 @@ def find_nearest_stores(location, result_count=3):
     # Return up to the number of results specified (default is 3)
     return places[:result_count]
 
+
+def find_zip(longitude, latitude):
+    """Use longitude and latitude to find the zip code
+
+    Use the geopy library to reverse geocode the longitude and latitude by
+    initializing a Nominatim geopy object as our geolocator with a unique name
+    and then using the reverse method to get the location object by passing in
+    the latitude and longitude.
+
+    I then extract the zip code from the location object's raw data. And return
+    it as an int because of its use in the Publix API.
+
+    :param longitude: Float of longitude
+    :param latitude:  Float of latitude
+    :return: Integer of zip code
+    """
+    geolocator = geopy.Nominatim(user_agent="pubsubpy_app")
+    location = geolocator.reverse(f"{latitude}, {longitude}")
+    zip_code = location.raw['address'].get('postcode', None)
+
+    return int(zip_code)
 
 # All possible customization tops for Publix subs
 all_customizations = {
