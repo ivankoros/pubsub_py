@@ -4,14 +4,15 @@ from flask import request
 from concurrent.futures import ThreadPoolExecutor
 from backend.nlp import find_closest_sandwich_sk
 import re
+import random
 
 from backend.resources import SubDeal
 from backend.resources import Users
 from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches, generate_user_info,
-                                        closest_string_match_fuzzy, nearest_interval_time, find_nearest_stores)
+                                        nearest_interval_time, find_nearest_stores, find_zip)
+from backend.twilio_app.publix_api import query_deals
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
-from backend.selenium_app.query_deals import main as query_deals
 
 
 # Find/initialize the user
@@ -34,6 +35,7 @@ def get_user(session):
                      name=None,
                      selected_store_address=None,
                      selected_store_name=None,
+                     selected_store_id=None,
                      state='start')
         session.add(user)
         session.commit()
@@ -151,10 +153,20 @@ def confirm_store_action(body, session, user):
         else:
             store = find_closest_sandwich_sk(body, [store['name'] for store in user.nearest_stores])
             store = next((s for s in user.nearest_stores if s['name'] == store), None)
-            print(store)
 
         if store:
-            user.selected_store_address = store['address']
+            longitude, latitude = store['longitude'], store['latitude']
+            zip_code = find_zip(longitude, latitude)
+
+            store_name = store['name'].replace('Publix Super Market at ', '').strip()
+
+            user.selected_store = {
+                'name': store_name,
+                'address': store['address'],
+                'zip_code': zip_code,
+
+            }
+
             """
             The store name coming from the Google Places API always comes in as:
               'Publix Super Market at <store name>'
@@ -163,8 +175,7 @@ def confirm_store_action(body, session, user):
             from the Publix website HTML in Selenium. So, I use regex to remove the
             'Publix Super Market at ' part of the store name. 
             """
-            remove_pattern = 'Publix Super Market at '
-            user.selected_store_name = store['name'].replace(remove_pattern, '').strip()
+
             session.commit()
 
             messages = [f"Great! I'll remember that you want to order from {store['name']}.",
@@ -200,8 +211,8 @@ def default_action(message, session, user, *args):
         today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
         if not today_sales:
-            query_deals(store_name=user.selected_store_name,
-                        store_address=user.selected_store_address)
+            zip = user.selected_store_address.split(',')[-1].strip()
+            query_deals(zip)
 
             today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
@@ -299,7 +310,8 @@ def order_sub_action(body, session, user, *args):
         )
 
         def submit_order():
-            order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
+            order_sub(self=order,
+                      diagnostic=OrderSubFunctionDiagnostic())
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -308,7 +320,6 @@ def order_sub_action(body, session, user, *args):
 
         return 'default', SubOrder.__str__(order)
     else:
-        import random
         random_sandwiches = [random.choice(all_sandwiches) for _ in range(3)]
         return 'order_sub', [
             f"I don't recognize that as a sub, try again. Some examples include:\n\n"
