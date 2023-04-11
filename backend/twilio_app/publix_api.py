@@ -17,11 +17,20 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
 
     :return: Dictionary of the deals
     """
-    url = f"https://services.publix.com/api/v4/ispu/product/Search?" \
-          f"storeNumber={store_id}&rowCount=200&orderAheadOnly=true&" \
-          f"categoryID=d3a5f2da-3002-4c6d-949c-db5304577efb&sort={sort_by_term}"
 
-    response = requests.get(url)
+    response = requests.request(
+        "GET",
+        "https://services.publix.com/api/v4/ispu/product/Search?",
+        data="",
+        headers={},
+        params={
+            "storeNumber": store_id,
+            "rowCount": "200",
+            "orderAheadOnly": "true",
+            "categoryID": "d3a5f2da-3002-4c6d-949c-db5304577efb",
+            "sort": sort_by_term,
+        },
+    )
 
     decoded_data = response.json()
 
@@ -39,6 +48,36 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     pprint(sale_dict)
     return sale_dict
 
+def find_nearest_publix(zip_code):
+    response = requests.request(
+        "GET",
+        "https://services.publix.com/api/v1/storelocation",
+        data="",
+        headers={},
+        params={
+            "types": "R,G,H,N,S",
+            "option": "",
+            "count": "5",
+            "includeOpenAndCloseDates": "true",
+            "isWebsite": "true",
+            "zipCode": 32224,
+        },
+    )
+
+    response = response.json()
+
+    store_dict = []
+
+    for store in response['Stores']:
+        store_name = html.unescape(store['NAME'])
+        store_address = store['ADDR']
+        store_id = store['KEY']
+        store_entry = {'name': store_name, 'address': store_address, 'store_id': store_id}
+        store_dict.append(store_entry)
+
+    pprint(store_dict)
+    return store_dict
+
 
 if __name__ == '__main__':
-    query_deals('1121')
+    query_deals('01125')
