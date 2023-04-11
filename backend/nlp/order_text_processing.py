@@ -86,11 +86,11 @@ def find_closest_sandwich_sk(item_to_match, match_possibilities_list=all_sandwic
 
     return best_match if best_match_score >= 0.5 else "No match found"
 
-def get_order(user_order_text):
+def parse_customizations(user_order_text):
 
-    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 'config\\.env'))
+    env_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 'config\\.env'))
 
-    load_dotenv(dotenv_path=ROOT_DIR,
+    load_dotenv(dotenv_path=env_directory,
                 override=True)
 
     openai.api_key = os.getenv("OPEN_AI_API_KEY")
@@ -131,7 +131,7 @@ def get_order(user_order_text):
 
     try:
         print(f"Order: {user_order_text}")
-        print(f"String respoonse: {response}")
+        print(f"String response: {response}")
         print("\n")
         pprint(ast.literal_eval(response))
         return ast.literal_eval(response)
