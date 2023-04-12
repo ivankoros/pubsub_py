@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 # SQSQLAlchemy configuration & setup
 Base = declarative_base()
 
+
 # Create a class for the SQAlchemy table that will be created, making it easy to add name and date of subs on sale
 class SubDeal(Base):
     __tablename__ = 'sub_deals'
@@ -22,25 +23,26 @@ class SubDeal(Base):
         self.date = date
         self.location = location
 
+
 class Users(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     phone_number = Column(String(255))
     name = Column(String(255))
-    selected_store_address = Column(String(255))
-    selected_store_name = Column(String(255))
+    selected_store = Column(JSON)
     state = Column(String(45),
                    default='start')
     nearest_stores = Column(JSON)
 
-    def __init__(self, phone_number, name, selected_store_address, selected_store_name, state):
+    def __init__(self, phone_number, name, state):
         self.phone_number = phone_number
         self.name = name
-        self.selected_store_address = selected_store_address
-        self.selected_store_name = selected_store_name
+        self.selected_store = None
         self.state = state
-        self.nearest_stores = []
+        self.nearest_stores = None
+
+
 def initialize_database():
     """Initialize MySQL database
 
@@ -61,7 +63,7 @@ def initialize_database():
     :return:
         Session: The database session object for the database
     """
-    load_dotenv(override=True, dotenv_path='C:\\Users\\Ivan Korostenskij\\Desktop\\Python\\pubsub_py\\config\\.env')
+    load_dotenv(override=True, dotenv_path=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 'config\\.env')))
 
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
