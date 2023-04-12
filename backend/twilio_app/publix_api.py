@@ -49,7 +49,7 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     pprint(sale_dict)
     return sale_dict
 
-def find_nearest_publix(zip_code):
+def find_publix_store_id(zip_code, store_name):
     response = requests.request(
         "GET",
         "https://services.publix.com/api/v1/storelocation",
@@ -66,6 +66,7 @@ def find_nearest_publix(zip_code):
     )
 
     response = response.json()
+    pprint(response)
 
     store_dict = []
 
@@ -76,9 +77,9 @@ def find_nearest_publix(zip_code):
         store_entry = {'name': store_name, 'address': store_address, 'store_id': store_id}
         store_dict.append(store_entry)
 
-    pprint(store_dict)
-    return store_dict
-
+    for store in store_dict:
+        if store['name'] == store_name:
+            return store['store_id']
 
 if __name__ == '__main__':
-    query_deals('01125')
+    find_publix_store_id('33458')
