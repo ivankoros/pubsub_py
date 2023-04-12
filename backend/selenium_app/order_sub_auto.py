@@ -57,7 +57,7 @@ class OrderSubFunctionDiagnostic():
 
 
 def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_agent: bool = False):
-    start = time.time()
+    start = time.perf_counter()
 
     driver = create_webdriver()
 
@@ -86,12 +86,12 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
     try_count = 0
     while try_count < 3:
         try:
-            # Input the store location
+            driver.get(sub_link)
             webdriver_location_input(driver=driver,
                                      store_name=self.store_name,
                                      store_address=self.store_address)
 
-            print(f"Successfully loaded in the page in {time.time() - start} seconds")
+            print(f"Successfully loaded in the page in {time.perf_counter() - start} seconds")
             break
         except TimeoutException:
             driver.get(sub_link)
@@ -104,12 +104,13 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
                                          customization_dictionary=self.customization_dictionary)
 
     driver.get(customized_sub_link)
-    time.sleep(10000)
+
     # Press add to cart button
     add_to_cart_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button')))
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "button#builder-add-to-order-btn")))
     add_to_cart_button.click()
     time.sleep(2)
+
 
     """ Go directly to check out by going to this link
     Instead of clicking review order, confirming store, and then clicking the checkout button,
@@ -123,7 +124,6 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
     # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
-
     try:
         confirm_location_element = driver.find_element(By.XPATH,
                                                        '//*[@id="body-wrapper"]/div/div[2]/div/div[3]/div/div/button[2]')
@@ -194,7 +194,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
     driver.quit()
 
     # Stop the timer
-    end = time.time()
+    end = time.perf_counter()
 
     # Update the SubOrder object with accurate information
     self.time_of_order = extracted_time
@@ -220,7 +220,7 @@ if __name__ == '__main__':
                      customization_dictionary={'Bread': 'Whole Wheat',
                                                'Cheese': 'Swiss',
                                                'Condiments': "Boar's Head Honey Mustard",
-                                               'Extras': 'Hummus',
+                                               'Extras': 'Hummus, Pizza',
                                                'Heating Options': 'Toasted',
                                                'Make it a Combo': 'None',
                                                'Size': 'Whole',
