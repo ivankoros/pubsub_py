@@ -4,7 +4,7 @@ import time
 import re
 
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
@@ -83,16 +83,28 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
 
     time.sleep(random.randint(2, 5))
 
-    webdriver_location_input(driver=driver,
-                             store_name=self.store_name,
-                             store_address=self.store_address)
+    try_count = 0
+    while try_count < 3:
+        try:
+            # Input the store location
+            webdriver_location_input(driver=driver,
+                                     store_name=self.store_name,
+                                     store_address=self.store_address)
+
+            print(f"Successfully loaded in the page in {time.time() - start} seconds")
+            break
+        except TimeoutException:
+            driver.get(sub_link)
+            time.sleep(5)
+            print(f"Page didn't load in time, trying again... ({try_count + 1}/3)")
+            try_count += 1
 
     # Click on the sub link
     customized_sub_link = build_sub_link(self=self,
                                          customization_dictionary=self.customization_dictionary)
 
     driver.get(customized_sub_link)
-
+    time.sleep(10000)
     # Press add to cart button
     add_to_cart_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button')))
@@ -214,7 +226,7 @@ if __name__ == '__main__':
                                                'Size': 'Whole',
                                                'Toppings': 'Banana Peppers, Dill Pickles, Lettuce, Oil & Vinegar Packets'})
 
-    order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
+    order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic(), use_user_agent=True)
 
     print(diagnostic)
     print(SubOrder.__str__(order_feedback))
