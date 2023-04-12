@@ -24,7 +24,7 @@ def webdriver_location_input(driver, store_name, store_address):
                                         '/html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button'))
     )
 
-    driver.execute_script("arguments[0].click();", choose_location_button)
+    #driver.execute_script("arguments[0].click();", choose_location_button)
     choose_location_button.click()
 
     location_selection_textbox_path = '//input[@aria-label="Search locations"]'
@@ -55,7 +55,6 @@ def webdriver_location_input(driver, store_name, store_address):
 
 
 def build_sub_link(self, customization_dictionary: dict = None):
-
     sub_hyphen_split = re.sub(" ", "-", self.sub_name.lower())
 
     sub_link = f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}"
@@ -128,26 +127,21 @@ def build_sub_link(self, customization_dictionary: dict = None):
         # "Yes": "183-775",
         # "No Thanks": "183-775",
     }
-
     if customization_dictionary:
         selected_ids = []
 
         for category, options in customization_dictionary.items():
-
             if options == "None":
                 continue
 
             toppings = options.split(", ")
-
             for topping in toppings:
                 if topping in customizations_map:
                     selected_ids.append(customizations_map[topping])
-                    print(f"Added {topping} to customizations")
                 else:
-                    print(f"Could not find {topping} in customizations_map")
+                    logging.warning(f"Could not find {topping} in customizations_map")
 
         link_list = ",".join(indv_id for indv_id in selected_ids)
         sub_link += f"/builder/?modifiers={link_list}&quantity=1"
 
-    print(f"Sub link: {sub_link}")
     return sub_link
