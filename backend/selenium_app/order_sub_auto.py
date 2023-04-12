@@ -8,7 +8,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
-from backend.selenium_app.helpers import webdriver_location_input
+from backend.selenium_app.helpers import webdriver_location_input, input_customizations
 
 from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
@@ -64,70 +64,75 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     # These are two different identifications for the browser to think it's a different browser
     user_agent_array = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
     ]
 
     # This reloads the page with per user agent
     # This is extremely important, many times, the first or even second user agent will be blocked (randomly),
     # so they're needed to change the identity of the browser to successfully load in the page (the hardest part)
 
-    for i in range(len(user_agent_array)):
-        # Setting user agent iteratively as Chrome 108 and 107
-        driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
-        diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
-        driver.get("https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648")
+    # for i in range(len(user_agent_array)):
+    #     # Setting user agent iteratively as Chrome 108 and 107
+    #     driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
+    #     diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
+    #     #driver.get("https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648")
+    #     driver.get("https://www.publix.com/pd/boars-head-ultimate-sub/BMO-DSB-100008?origin=search1")
+
+    driver.get(f"https://www.publix.com/pd/anything/{self.sub_id}/builder")
 
     # This sets the webdriver to undefined, so that the browser thinks it's not a webdriver
     # Again, changing identity to get past initial automation block
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    time.sleep(
-        random.randint(2, 3))  # Sleep for a couple of seconds before doing anything, important to not get blocked
 
-    try:
-        accept_button = driver.find_element(By.XPATH,
-                                            '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]')
-        wait = WebDriverWait(driver, 10)
-        if wait.until(EC.element_to_be_clickable((By.XPATH,
-                                                  '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]'))):
-            accept_button.click()
-    except NoSuchElementException:
-        pass
-
-    # Store location input
-    official_location_name = webdriver_location_input(driver,
+    webdriver_location_input(driver,
                                                       store_name=self.store_name,
                                                       store_address=self.store_address)
 
-    # Choose requested sub from sub list
-    requested_sub = self.requested_sub.strip()
+    time.sleep(10)
+    driver.get(f"https://www.publix.com/pd/anything/{self.sub_id}/builder")
+    # time.sleep(1000)
+    # try:
+    #     accept_button = driver.find_element(By.XPATH,
+    #                                         '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]')
+    #     wait = WebDriverWait(driver, 10)
+    #     if wait.until(EC.element_to_be_clickable((By.XPATH,
+    #                                               '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]'))):
+    #         accept_button.click()
+    # except NoSuchElementException:
+    #     pass
+    #
+    # # Store location input
 
-    if requested_sub.startswith("Boar's Head"):
-        # Split the sub name around the reserved symbol
-        prefix, suffix = requested_sub.split("Boar's Head")
-        xpath_query = f'//*[contains(text(),"Boar") and contains(text(),"{suffix.strip()}")]'
-    else:
-        xpath_query = f'//*[contains(text(),"{requested_sub}")]'
+    #
+    # # Choose requested sub from sub list
+    # requested_sub = self.requested_sub.strip()
+    #
+    # if requested_sub.startswith("Boar's Head"):
+    #     # Split the sub name around the reserved symbol
+    #     prefix, suffix = requested_sub.split("Boar's Head")
+    #     xpath_query = f'//*[contains(text(),"Boar") and contains(text(),"{suffix.strip()}")]'
+    # else:
+    #     xpath_query = f'//*[contains(text(),"{requested_sub}")]'
+    #
+    # pick_sandwich = WebDriverWait(driver, 10).until(
+    #     EC.element_to_be_clickable((By.XPATH, xpath_query))
+    # )
+    #
+    # sandwich_href = (pick_sandwich.get_attribute("href"))
+    # sandwich_name = pick_sandwich.text
+    #
+    # print(f"sandwich name: {sandwich_name}"
+    #       f"sandwhich link: {sandwich_href}")
+    #
+    # driver.get(sandwich_href)
+    #
+    # # Press customize sub button
+    # customize_sub_button = driver.find_element(By.XPATH, '//*[@id="customize-btn"]')
+    # customize_href = customize_sub_button.get_attribute("href")
+    # print(f"customize sub button href: {customize_href}")
+    # driver.get(customize_href)
 
-    pick_sandwich = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, xpath_query))
-    )
-
-    sandwich_href = (pick_sandwich.get_attribute("href"))
-    sandwich_name = pick_sandwich.text
-
-    print(f"sandwich name: {sandwich_name}"
-          f"sandwhich link: {sandwich_href}")
-
-    driver.get(sandwich_href)
-
-    # Press customize sub button
-    customize_sub_button = driver.find_element(By.XPATH, '//*[@id="customize-btn"]')
-    customize_href = customize_sub_button.get_attribute("href")
-    print(f"customize sub button href: {customize_href}")
-    driver.get(customize_href)
-
-    whole_element_xpath = "//p[contains(text(), 'Whole')]/ancestor::label"
-    driver.find_element(By.XPATH, whole_element_xpath).click()
+    input_customizations(driver=driver)
 
     # Press add to cart button
     driver.implicitly_wait(5)
@@ -221,21 +226,18 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     end = time.time()
 
     # Update the SubOrder object with accurate information
-    self.store_name = official_location_name
-    self.ordered_sandwich_name = sandwich_name
     self.time_of_order = extracted_time
 
     # Update the diagnostic object with accurate information
-    diagnostic.sandwich_name = sandwich_name
     diagnostic.pickup_time = extracted_time
-    diagnostic.official_location_name = official_location_name
     diagnostic.run_speed = round(end - start)
 
     return self, diagnostic
 
 
 if __name__ == '__main__':
-    order = SubOrder(requested_sub="Publix Veggie Sub",
+    order = SubOrder(sub_name="Publix Veggie Sub",
+                     sub_id='BMO-DSB-600560',
                      store_name="St. John's Town Center",
                      store_address='4413 Town Center Pkwy #100, Jacksonville',
                      date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"),
