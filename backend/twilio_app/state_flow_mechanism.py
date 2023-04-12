@@ -10,7 +10,7 @@ from backend.resources import SubDeal
 from backend.resources import Users
 from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches, generate_user_info,
                                         nearest_interval_time, find_nearest_stores, find_zip)
-from backend.twilio_app.publix_api import query_deals
+from backend.twilio_app.publix_api import query_deals, find_publix_store_id
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
 
@@ -155,26 +155,35 @@ def confirm_store_action(body, session, user):
             store = next((s for s in user.nearest_stores if s['name'] == store), None)
 
         if store:
+            """Adding all info of the user's selected store to the database
+            
+            1. I find the user's zip by using the longitude and latitude of the store
+            
+            2. I use regex to remove the 'Publix Super Market at ' part of the store name.
+            
+                The store name coming from the Google Places API always comes in as:
+                  'Publix Super Market at <store name>'
+
+                This causes problems because I use the store name to select the store location
+                from the Publix website HTML in Selenium. So, I use regex to remove the
+                'Publix Super Market at ' part of the store name. 
+            
+            3. 
+            
+            """
             longitude, latitude = store['longitude'], store['latitude']
             zip_code = find_zip(longitude, latitude)
 
             store_name = store['name'].replace('Publix Super Market at ', '').strip()
 
+            store_id = find_publix_store_id(store_name, zip_code)
+
             user.selected_store = {
                 'name': store_name,
                 'address': store['address'],
                 'zip_code': zip_code,
-
+                'store_id': store_id
             }
-
-            """
-            The store name coming from the Google Places API always comes in as:
-              'Publix Super Market at <store name>'
-            
-            This causes problems because I use the store name to select the store location
-            from the Publix website HTML in Selenium. So, I use regex to remove the
-            'Publix Super Market at ' part of the store name. 
-            """
 
             session.commit()
 
@@ -201,6 +210,7 @@ def get_sale_action(body, session, *args):
 def default_action(message, session, user, *args):
     # If the user input is recognized, initialize the default state
     if "order" in message.lower():
+        # Todo check for time (store open hours) and give warning if close to closing as well
         return 'order_sub', ["You're all set to order for quick pickup. Give me an order "
                              "and it'll be ready for pickup in 30 minutes.\n\n"
                              "Example: 'Let me get a hot meatball sub with provolone'",
@@ -208,12 +218,11 @@ def default_action(message, session, user, *args):
 
     elif "sale" in message.lower() or "deal" in message.lower():
         # Check if there are any sales today and return the corresponding message
+
+        # TODO change this to sue publix api query_deals
         today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
         if not today_sales:
-            zip = user.selected_store_address.split(',')[-1].strip()
-            query_deals(zip)
-
             today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
 
         if len(today_sales) == 1:
@@ -273,6 +282,7 @@ def order_sub_action(body, session, user, *args):
 
     if find_closest_sandwich_sk(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
 
+        # TODO Change ths to use new JSON object for store info
         sandwich = find_closest_sandwich_sk(body, all_sandwiches)
         store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_name
         store_address = session.query(Users).filter(
