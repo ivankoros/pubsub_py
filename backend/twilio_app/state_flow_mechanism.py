@@ -33,9 +33,6 @@ def get_user(session):
     if not user:
         user = Users(phone_number=phone_number,
                      name=None,
-                     selected_store_address=None,
-                     selected_store_name=None,
-                     selected_store_id=None,
                      state='start')
         session.add(user)
         session.commit()
@@ -168,15 +165,19 @@ def confirm_store_action(body, session, user):
                 from the Publix website HTML in Selenium. So, I use regex to remove the
                 'Publix Super Market at ' part of the store name. 
             
-            3. 
+            3. Use the store name and zip code to find the store ID using the Publix API.
+            
+            4. Save all this info to the database as a JSON object.
             
             """
             longitude, latitude = store['longitude'], store['latitude']
             zip_code = find_zip(longitude, latitude)
+            print(f"zip code: {zip_code}")
 
             store_name = store['name'].replace('Publix Super Market at ', '').strip()
-
-            store_id = find_publix_store_id(store_name, zip_code)
+            print(f"store name: {store_name}")
+            store_id = find_publix_store_id(zip_code=zip_code,
+                                            store_name=store_name)
 
             user.selected_store = {
                 'name': store_name,
@@ -187,7 +188,7 @@ def confirm_store_action(body, session, user):
 
             session.commit()
 
-            messages = [f"Great! I'll remember that you want to order from {store['name']}.",
+            messages = [f"Great! I'll remember that you want to order from {store_name}.",
                         "You're all set! You can ask me what's on sale to get deals from "
                         "your store or say 'order' to put in an order."]
 
