@@ -124,34 +124,27 @@ def build_sub_link(self, customization_dictionary: dict = None):
         "Toasted": "8-42",
         "No Thanks": "8-43",
 
-        # Make it a Combo
-        "Yes": "183-775",
-        "No tanks": "183-775",
+        # TODO fix this Make it a Combo
+        # "Yes": "183-775",
+        # "No Thanks": "183-775",
     }
 
     if customization_dictionary:
         selected_ids = []
 
-        for customization in customization_dictionary:
-            value = customization_dictionary[customization]
+        for category, options in customization_dictionary.items():
 
-            # Handle 'None' values
-            if value == "None":
+            if options == "None":
                 continue
 
-            # Handle multiple toppings
-            if customization == "Toppings":
-                toppings = value.split(", ")
-                for topping in toppings:
-                    if topping in customizations_map:
-                        selected_ids.append(customizations_map[topping])
-                    else:
-                        print(f"Could not find {topping} in customizations_map")
-            else:
-                if value in customizations_map:
-                    selected_ids.append(customizations_map[value])
+            toppings = options.split(", ")
+
+            for topping in toppings:
+                if topping in customizations_map:
+                    selected_ids.append(customizations_map[topping])
+                    print(f"Added {topping} to customizations")
                 else:
-                    print(f"Could not find {value} in customizations_map")
+                    print(f"Could not find {topping} in customizations_map")
 
         link_list = ",".join(indv_id for indv_id in selected_ids)
         sub_link += f"/builder/?modifiers={link_list}&quantity=1"
