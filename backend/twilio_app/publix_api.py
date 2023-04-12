@@ -34,6 +34,7 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     )
 
     decoded_data = response.json()
+    pprint(decoded_data)
 
     sale_dict = []
 
@@ -50,6 +51,14 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     return sale_dict
 
 def find_publix_store_id(zip_code, store_name):
+    """Get the store ID for the given store name and zip code.
+
+
+
+    :param zip_code: String, zip code of the store
+    :param store_name: String, name of the store LOCATION "St. John's Town Center"
+    :return:
+    """
     response = requests.request(
         "GET",
         "https://services.publix.com/api/v1/storelocation",
@@ -79,7 +88,39 @@ def find_publix_store_id(zip_code, store_name):
 
     for store in store_dict:
         if store['name'] == store_name:
+            print(f"Found store ID: {store['store_id']}")
             return store['store_id']
 
+def find_sub_id(store_id, sub_name):
+    """Find the product ID for the given sub name and store ID.
+
+    :param store_id: String, store ID
+    :param sub_name: String, name of the sub
+    :return: String, product ID
+    """
+    response = requests.request(
+        "GET",
+        "https://services.publix.com/api/v4/ispu/product/Search?",
+        data="",
+        headers={},
+        params={
+            "storeNumber": store_id,
+            "rowCount": "200",
+            "orderAheadOnly": "true",
+            "categoryID": "d3a5f2da-3002-4c6d-949c-db5304577efb",
+            "sort": "onsalemsg"
+        },
+    )
+
+    response = response.json()
+    for product in response['Products']:
+        if html.unescape(product['title']) == sub_name:
+            print(product['Productid'])
+
+            return product['Productid']
+
+    print("Sub ID not found")
+
+
 if __name__ == '__main__':
-    find_publix_store_id('33458')
+    find_sub_id(store_id="09999", sub_name="Boar's Head® Ultimate Wrap")
