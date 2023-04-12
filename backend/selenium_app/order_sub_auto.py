@@ -70,67 +70,24 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     # This reloads the page with per user agent
     # This is extremely important, many times, the first or even second user agent will be blocked (randomly),
     # so they're needed to change the identity of the browser to successfully load in the page (the hardest part)
+    sub_hyphen_split = re.sub(" ", "-", self.sub_name.lower())
 
-    # for i in range(len(user_agent_array)):
-    #     # Setting user agent iteratively as Chrome 108 and 107
-    #     driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
-    #     diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
-    #     #driver.get("https://www.publix.com/c/subs-and-more/33957951-95fa-4408-b54a-dd570a7e8648")
-    #     driver.get("https://www.publix.com/pd/boars-head-ultimate-sub/BMO-DSB-100008?origin=search1")
-
-    driver.get(f"https://www.publix.com/pd/anything/{self.sub_id}/builder")
+    for i in range(len(user_agent_array)):
+        # Setting user agent iteratively as Chrome 108 and 107
+        driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
+        diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
+        driver.get(f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}/")
 
     # This sets the webdriver to undefined, so that the browser thinks it's not a webdriver
     # Again, changing identity to get past initial automation block
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
     webdriver_location_input(driver,
-                                                      store_name=self.store_name,
-                                                      store_address=self.store_address)
+                             store_name=self.store_name,
+                             store_address=self.store_address)
 
-    time.sleep(10)
-    driver.get(f"https://www.publix.com/pd/anything/{self.sub_id}/builder")
-    # time.sleep(1000)
-    # try:
-    #     accept_button = driver.find_element(By.XPATH,
-    #                                         '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]')
-    #     wait = WebDriverWait(driver, 10)
-    #     if wait.until(EC.element_to_be_clickable((By.XPATH,
-    #                                               '//button[contains(@class,"button--primary") and contains(@class,"button--lg") and contains(text(),"Accept and continue")]'))):
-    #         accept_button.click()
-    # except NoSuchElementException:
-    #     pass
-    #
-    # # Store location input
 
-    #
-    # # Choose requested sub from sub list
-    # requested_sub = self.requested_sub.strip()
-    #
-    # if requested_sub.startswith("Boar's Head"):
-    #     # Split the sub name around the reserved symbol
-    #     prefix, suffix = requested_sub.split("Boar's Head")
-    #     xpath_query = f'//*[contains(text(),"Boar") and contains(text(),"{suffix.strip()}")]'
-    # else:
-    #     xpath_query = f'//*[contains(text(),"{requested_sub}")]'
-    #
-    # pick_sandwich = WebDriverWait(driver, 10).until(
-    #     EC.element_to_be_clickable((By.XPATH, xpath_query))
-    # )
-    #
-    # sandwich_href = (pick_sandwich.get_attribute("href"))
-    # sandwich_name = pick_sandwich.text
-    #
-    # print(f"sandwich name: {sandwich_name}"
-    #       f"sandwhich link: {sandwich_href}")
-    #
-    # driver.get(sandwich_href)
-    #
-    # # Press customize sub button
-    # customize_sub_button = driver.find_element(By.XPATH, '//*[@id="customize-btn"]')
-    # customize_href = customize_sub_button.get_attribute("href")
-    # print(f"customize sub button href: {customize_href}")
-    # driver.get(customize_href)
+    driver.get(f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}/builder")
 
     input_customizations(driver=driver)
 
@@ -151,7 +108,6 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
     # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
-    driver.implicitly_wait(1)
 
     try:
         confirm_location_element = driver.find_element(By.XPATH,
@@ -236,8 +192,8 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
 
 
 if __name__ == '__main__':
-    order = SubOrder(sub_name="Publix Veggie Sub",
-                     sub_id='BMO-DSB-600560',
+    order = SubOrder(sub_name="Publix Italian Sub",
+                     sub_id='BMO-DSB-100013',
                      store_name="St. John's Town Center",
                      store_address='4413 Town Center Pkwy #100, Jacksonville',
                      date_of_order=datetime.today().date().strftime("%A, %B %d, %Y"),
