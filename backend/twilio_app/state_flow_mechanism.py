@@ -10,7 +10,7 @@ from backend.resources import SubDeal
 from backend.resources import Users
 from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches, generate_user_info,
                                         nearest_interval_time, find_nearest_stores, find_zip)
-from backend.twilio_app.publix_api import query_deals, find_publix_store_id
+from backend.twilio_app.publix_api import query_deals, find_publix_store_id, find_sub_id
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
 
@@ -176,6 +176,7 @@ def confirm_store_action(body, session, user):
 
             store_name = store['name'].replace('Publix Super Market at ', '').strip()
             print(f"store name: {store_name}")
+
             store_id = find_publix_store_id(zip_code=zip_code,
                                             store_name=store_name)
 
@@ -282,34 +283,38 @@ def order_sub_action(body, session, user, *args):
         return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
     if find_closest_sandwich_sk(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
-
-        # TODO Change ths to use new JSON object for store info
-        sandwich = find_closest_sandwich_sk(body, all_sandwiches)
-        store_name = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store_name
-        store_address = session.query(Users).filter(
-            Users.phone_number == user.phone_number).first().selected_store_address
-        order_date = datetime.today().date().strftime("%A, %B %d, %Y")
-        order_time = nearest_interval_time()
-
+        # TODO expand on this as a lsit of steps
         """ What is nearest_interval_time()?
-        
+
             This is my custom function to get the nearest 30 minute interval 
             with a five minute buffer. This is the time that the Publix will 
             Schedule the order for.
-            
+
             This is not arbitrary, I figured out how the time for soonest order
             possible is calculated by Publix and this is my implementation of it.
-            
+
             Examples:
              - ordering at 12:02 PM will give a pickup time of 12:30 PM
              - ordering at 12:06 PM will give a pickup time of 12:40 PM
-                
+
         """
+        # If the user's input is determined to be a correct sandwich name, then order the sub
+        store_dict = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store
+
+        store_name = store_dict['name']
+        store_address = store_dict['address']
+        store_id = store_dict['store_id']
+        order_date = datetime.today().date().strftime("%A, %B %d, %Y")
+        order_time = nearest_interval_time()
+
+        sandwich = find_closest_sandwich_sk(body, all_sandwiches)
+        sandwich_id = find_sub_id(store_id=store_id, sub_name=sandwich)
 
         first_name, last_name, email, phone_number = generate_user_info()
 
         order = SubOrder(
-            requested_sub=sandwich,
+            sub_name=sandwich,
+            sub_id=sandwich_id,
             store_name=store_name,
             store_address=store_address,
             date_of_order=order_date,
