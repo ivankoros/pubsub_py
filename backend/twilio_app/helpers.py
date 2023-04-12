@@ -215,13 +215,13 @@ def find_zip(longitude, latitude):
 
     :param longitude: Float of longitude
     :param latitude:  Float of latitude
-    :return: Integer of zip code
+    :return: String of zip code
     """
     geolocator = geopy.Nominatim(user_agent="pubsubpy_app")
     location = geolocator.reverse(f"{latitude}, {longitude}")
     zip_code = location.raw['address'].get('postcode', None)
 
-    return int(zip_code)
+    return zip_code
 
 # All possible customization tops for Publix subs
 all_customizations = {
