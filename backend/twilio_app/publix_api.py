@@ -34,7 +34,6 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     )
 
     decoded_data = response.json()
-    pprint(decoded_data)
 
     sale_dict = []
 
@@ -44,10 +43,16 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
             price = re.sub("Starts At ", "", product['priceline1'])
             product_id = product['Productid']
 
-            sale_entry = {'name': name, 'price': price, 'product_id': product_id}
-            sale_dict.append(sale_entry)
+            sale_dict.append({'name': name,
+                              'price': price,
+                              'product_id': product_id})
 
-    pprint(sale_dict)
+    if sale_dict:
+        print(f"Found {len(sale_dict)} deals at store ID: {store_id}")
+
+    else:
+        print(f"No deals found at store ID: {store_id}")
+
     return sale_dict
 
 def find_publix_store_id(zip_code, store_name):
@@ -123,4 +128,4 @@ def find_sub_id(store_id, sub_name):
 
 
 if __name__ == '__main__':
-    find_sub_id(store_id="09999", sub_name="Boar's Head® Ultimate Wrap")
+    query_deals(store_id="00589")
