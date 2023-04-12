@@ -19,9 +19,11 @@ def webdriver_location_input(driver, store_name, store_address):
     # choose_location_button = WebDriverWait(driver, 10).until(
     #     EC.element_to_be_clickable((By.XPATH, '//button[@id="choose-store-btn"]')))
 
-    choose_location_button = driver.find_element(By.XPATH,
-                                                 '/html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button')
-    # /html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button
+    choose_location_button = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH,
+                                        '/html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button'))
+    )
+
     driver.execute_script("arguments[0].click();", choose_location_button)
     choose_location_button.click()
 
@@ -61,8 +63,8 @@ def build_sub_link(self, customization_dictionary: dict = None):
     # Map the customizations to the correct elements
     customizations_map = {
         # Size
-        "Half": "6-94",
-        "Whole": "6-95",
+        "Half": "9-24",
+        "Whole": "9-25",
 
         # Bread
         "Italian 5 Grain": "5-29",
