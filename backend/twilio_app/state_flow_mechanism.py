@@ -218,20 +218,18 @@ def default_action(message, session, user, *args):
                              "Example: 'Let me get a hot meatball sub with provolone'",
                              "You can also say 'exit' to go back."]
 
-    elif "sale" in message.lower() or "deal" in message.lower():
+    elif re.search(r"(sale|deal|coupon|offer|promotion|special|discount|discounted|discounts|)",
+                   message, re.IGNORECASE):
         # Check if there are any sales today and return the corresponding message
 
-        # TODO change this to sue publix api query_deals
-        today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
+        today_sales = query_deals(user.selected_store['store_id'])
 
-        if not today_sales:
-            today_sales = session.query(SubDeal).filter(SubDeal.date == datetime.today().date()).all()
-
-        if len(today_sales) == 1:
-            message = "The " + today_sales[0].name.lower() + " is on sale today!"
-        else:
+        if today_sales:
             message = f"The {', '.join([sale.name.lower() for sale in today_sales][:-1])}, " \
                       f"and {today_sales[-1].name.lower()} are on sale today!"
+        else:
+            message = "I didn't find any deals. That is weird, there are always deals." \
+                      "This means I might've messed up."
 
         messages = ["Let's see what's on sale today!", message]
 
