@@ -34,13 +34,13 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     )
 
     decoded_data = response.json()
-
     sale_dict = []
 
     for product in decoded_data['Products']:
-        if product['onsalemsg'] == 'On Sale':
-            name = html.unescape(product['title'])
-            price = re.sub("Starts At ", "", product['priceline1'])
+        if product['onsalemsg'] == 'On Sale' and "Sub" in product['title']:
+            pprint(product)
+            name = re.sub("®", "", html.unescape(product['title']))
+            price = re.sub("Starts At \\$", "", product['priceline1'])
             product_id = product['Productid']
 
             sale_dict.append({'name': name,
@@ -49,7 +49,7 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
 
     if sale_dict:
         print(f"Found {len(sale_dict)} deals at store ID: {store_id}")
-
+        pprint(sale_dict)
     else:
         print(f"No deals found at store ID: {store_id}")
 
