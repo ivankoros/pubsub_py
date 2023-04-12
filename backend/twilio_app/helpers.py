@@ -47,9 +47,10 @@ class TextResponses:
 
 
 class SubOrder:
-    def __init__(self, requested_sub, store_name, store_address, date_of_order, first_name,
+    def __init__(self, sub_name, sub_id, store_name, store_address, date_of_order, first_name,
                  last_name, email, phone_number, time_of_order):
-        self.requested_sub = requested_sub
+        self.sub_name = sub_name
+        self.sub_id = sub_id
         self.store_name = store_name
         self.store_address = store_address
         self.date_of_order = date_of_order
@@ -60,7 +61,7 @@ class SubOrder:
         self.phone_number = phone_number
 
     def __str__(self):
-        return [f"Great, your order for the {self.requested_sub} "
+        return [f"Great, your order for the {self.sub_name} "
                 f"is confirmed for pickup at {self.store_name} " 
                 f"at {self.time_of_order} today. "
                 f"It'll be ready under the name {self.first_name} {self.last_name}.",
