@@ -13,6 +13,7 @@ from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches,
 from backend.twilio_app.publix_api import query_deals, find_publix_store_id, find_sub_id
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
+from backend.nlp.order_text_processing import parse_customizations
 
 
 # Find/initialize the user
@@ -209,24 +210,25 @@ def get_sale_action(body, session, *args):
     pass
 
 
-def default_action(message, session, user, *args):
+def default_action(body, session, user, *args):
     # If the user input is recognized, initialize the default state
-    if "order" in message.lower():
+    if "order" in body.lower():
         # Todo check for time (store open hours) and give warning if close to closing as well
         return 'order_sub', ["You're all set to order for quick pickup. Give me an order "
                              "and it'll be ready for pickup in 30 minutes.\n\n"
                              "Example: 'Let me get a hot meatball sub with provolone'",
                              "You can also say 'exit' to go back."]
 
-    elif re.search(r"(sale|deal|coupon|offer|promotion|special|discount|discounted|discounts|)",
-                   message, re.IGNORECASE):
+    elif re.search(r"sale|deal|coupon|offer|promotion|special|discount|discounted|discounts",
+                   body, re.IGNORECASE):
         # Check if there are any sales today and return the corresponding message
-
         today_sales = query_deals(user.selected_store['store_id'])
 
         if today_sales:
-            message = f"The {', '.join([sale.name.lower() for sale in today_sales][:-1])}, " \
-                      f"and {today_sales[-1].name.lower()} are on sale today!"
+            message = ""
+            for i, sale in enumerate(today_sales):
+                message += f"{i + 1}. {sale['name']}\n" \
+                           f"    Price: ${float(sale['price']) + 1.50}\n"
         else:
             message = "I didn't find any deals. That is weird, there are always deals." \
                       "This means I might've messed up."
@@ -310,6 +312,11 @@ def order_sub_action(body, session, user, *args):
 
         first_name, last_name, email, phone_number = generate_user_info()
 
+        customization_dictionary = parse_customizations(body)
+
+        from pprint import pprint
+        pprint(customization_dictionary)
+
         order = SubOrder(
             sub_name=sandwich,
             sub_id=sandwich_id,
@@ -320,7 +327,8 @@ def order_sub_action(body, session, user, *args):
             first_name=first_name,
             last_name=last_name,
             email=email,
-            phone_number=phone_number
+            phone_number=phone_number,
+            customization_dictionary=customization_dictionary
         )
 
         def submit_order():
@@ -340,7 +348,14 @@ def order_sub_action(body, session, user, *args):
             f"The {random_sandwiches[0].lower()}, the {random_sandwiches[1].lower()}, and the {random_sandwiches[2].lower()}.",
             f"You can also say 'exit' to exit ordering"]
 
-
+custom_dict = {'Bread': 'Whole Wheat',
+               'Cheese': 'Swiss',
+               'Condiments': "Boar's Head Honey Mustard",
+               'Extras': 'Hummus',
+               'Heating Options': 'Toasted',
+               'Make it a Combo': 'None',
+               'Size': 'Half',
+               'Toppings': 'Banana Peppers, Dill Pickles, Lettuce, Oil & Vinegar Packets'}
 # This dictionary contains the state information for the state machine
 state_info = {
     'start': {
