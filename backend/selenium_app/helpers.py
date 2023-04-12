@@ -1,4 +1,6 @@
 import logging
+from time import sleep
+import re
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,7 +19,8 @@ def webdriver_location_input(driver, store_name, store_address):
     # choose_location_button = WebDriverWait(driver, 10).until(
     #     EC.element_to_be_clickable((By.XPATH, '//button[@id="choose-store-btn"]')))
 
-    choose_location_button = driver.find_element(By.XPATH, '/html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button')
+    choose_location_button = driver.find_element(By.XPATH,
+                                                 '/html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button')
     # /html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button
     driver.execute_script("arguments[0].click();", choose_location_button)
     choose_location_button.click()
@@ -49,35 +52,107 @@ def webdriver_location_input(driver, store_name, store_address):
     return official_location_name
 
 
-def input_customizations(driver):
-    custom_dict = {'Bread': 'Whole Wheat',
-                   'Cheese': 'Swiss',
-                   'Condiments': "Boar's Head Honey Mustard",
-                   'Extras': 'Hummus',
-                   'Heating Options': 'Toasted',
-                   'Make it a Combo': 'None',
-                   'Size': 'Half',
-                   'Toppings': 'Banana Peppers, Dill Pickles, Lettuce, Oil & Vinegar Packets'}
+def build_sub_link(self, customization_dictionary: dict = None):
 
-    for key, value in custom_dict.items():
-        # Find the label element for the customization
-        #label_element_xpath = f"//label[contains(text(), '{key}')]"
-        #label_element = driver.find_element(By.XPATH, label_element_xpath)
+    sub_hyphen_split = re.sub(" ", "-", self.sub_name.lower())
 
-        print(f"Label element: {key}")
-        from time import sleep
+    sub_link = f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}"
 
-        # Find the customization element within the label element
-        customization_element = label_element.find_element(By.XPATH, './following-sibling::div')
+    # Map the customizations to the correct elements
+    customizations_map = {
+        # Size
+        "Half": "6-94",
+        "Whole": "6-95",
 
-        # Find the customization option element within the customization element
-        customization_option_element_xpath = f"//label[contains(text(), '{value}')]"
-        customization_option_element = customization_element.find_element(By.XPATH, customization_option_element_xpath)
+        # Bread
+        "Italian 5 Grain": "5-29",
+        "White": "5-27",
+        "Whole Wheat": "5-28",
+        "Flatbread": "5-1062",
+        "No Bread (Make it a Salad) - Lettuce Base": "5-1518",
+        "No Bread (Make it a Salad) - Spinach Base": "5-1519",
 
-        # Click on the customization option element
-        customization_option_element.click()
+        # Cheese
+        "Pepper Jack": "6-1925",
+        "Cheddar": "6-38",
+        "Muenster": "6-39",
+        "Provolone": "6-35",
+        "Swiss": "6-34",
+        "White American": "6-37",
+        "Yellow American": "6-36",
 
-    whole_element_xpath = "//p[contains(text(), 'Whole')]/ancestor::label"
-    driver.find_element(By.XPATH, whole_element_xpath).click()
+        # Extras
+        "Double Meat": "185-1",
+        "Double Cheese": "185-2",
+        "Bacon": "185-3",
+        "Guacamole": "185-723",
+        "Hummus": "185-970",
 
-    pass
+        # Toppings
+        "Banana Peppers": "10-15",
+        "Black Olives": "10-19",
+        "Boar's Head® Garlic Pickles": "10-18",
+        "Cucumbers": "10-120",
+        "Dill Pickles": "10-17",
+        "Green Peppers": "10-12",
+        "Jalapeno Peppers": "10-16",
+        "Lettuce": "10-8",
+        "Onions": "10-10",
+        "Spinach": "10-141",
+        "Tomatoes": "10-9",
+        "Salt": "10-20",
+        "Pepper": "10-21",
+        "Oregano": "10-23",
+        "Oil & Vinegar Packets": "10-22",
+
+        # Condiments
+        "Boar's Head Honey Mustard": "186-7",
+        "Boar's Head Spicy Mustard": "186-6",
+        "Mayonnaise": "186-4",
+        "Yellow Mustard": "186-5",
+        "Vegan Ranch Dressing": "186-911",
+        "Buttermilk Ranch": "186-2377",
+        "Boar's Head® Pepperhouse Gourmaise": "186-145",
+        "Boar's Head® Chipotle Gourmaise": "186-1522",
+        "Boar's Head® Sub Dressing": "186-1521",
+        "Deli Sub Sauce": "186-1523",
+
+        # Heating Options
+        "Pressed": "8-41",
+        "Toasted": "8-42",
+        "No Thanks": "8-43",
+
+        # Make it a Combo
+        "Yes": "183-775",
+        "No tanks": "183-775",
+    }
+
+    if customization_dictionary:
+        selected_ids = []
+
+        for customization in customization_dictionary:
+            value = customization_dictionary[customization]
+
+            # Handle 'None' values
+            if value == "None":
+                continue
+
+            # Handle multiple toppings
+            if customization == "Toppings":
+                toppings = value.split(", ")
+                for topping in toppings:
+                    if topping in customizations_map:
+                        selected_ids.append(customizations_map[topping])
+                    else:
+                        print(f"Could not find {topping} in customizations_map")
+            else:
+                if value in customizations_map:
+                    selected_ids.append(customizations_map[value])
+                else:
+                    print(f"Could not find {value} in customizations_map")
+
+        link_list = ",".join(indv_id for indv_id in selected_ids)
+        sub_link += f"/builder/?modifiers={link_list}&quantity=1"
+
+    print(f"Sub link: {sub_link}")
+    return sub_link
