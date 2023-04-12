@@ -14,10 +14,21 @@ def webdriver_location_input(driver, store_name, store_address):
     So, we use the address variable to find the correct store, wait for it to load, and then click on it. This exits the address prompt.
 
     """
-    location_selection_textbox_path = '//*[@id="navBar"]/div/div[2]/div/div/div[1]/div[2]/div/div/div[2]/div[2]/div/div/div/div[1]/form/input'
+    # choose_location_button = WebDriverWait(driver, 10).until(
+    #     EC.element_to_be_clickable((By.XPATH, '//button[@id="choose-store-btn"]')))
 
-    driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(store_address)
-    logging.info(f'Entered address: {store_address}')
+    choose_location_button = driver.find_element(By.XPATH, '/html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button')
+    # /html/body/div/div/section/div[2]/div[2]/div/div[2]/div[2]/div[2]/div[3]/div/div/div/button
+    driver.execute_script("arguments[0].click();", choose_location_button)
+    choose_location_button.click()
+
+    location_selection_textbox_path = '//input[@aria-label="Search locations"]'
+
+    textbox = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, location_selection_textbox_path)))
+
+    textbox.send_keys(store_address)
+
     driver.find_element(By.XPATH, location_selection_textbox_path).send_keys(u'\ue007')  # Press enter
     logging.info('Pressed enter')
     location_address = f'//button[@aria-label="Choose {store_name} as your store"]'
@@ -50,8 +61,11 @@ def input_customizations(driver):
 
     for key, value in custom_dict.items():
         # Find the label element for the customization
-        label_element_xpath = f"//label[contains(text(), '{key}')]"
-        label_element = driver.find_element(By.XPATH, label_element_xpath)
+        #label_element_xpath = f"//label[contains(text(), '{key}')]"
+        #label_element = driver.find_element(By.XPATH, label_element_xpath)
+
+        print(f"Label element: {key}")
+        from time import sleep
 
         # Find the customization element within the label element
         customization_element = label_element.find_element(By.XPATH, './following-sibling::div')
