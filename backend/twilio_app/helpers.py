@@ -48,7 +48,7 @@ class TextResponses:
 
 class SubOrder:
     def __init__(self, sub_name, sub_id, store_name, store_address, date_of_order, first_name,
-                 last_name, email, phone_number, time_of_order):
+                 last_name, email, phone_number, time_of_order, customization_dictionary):
         self.sub_name = sub_name
         self.sub_id = sub_id
         self.store_name = store_name
@@ -59,6 +59,7 @@ class SubOrder:
         self.last_name = last_name
         self.email = email
         self.phone_number = phone_number
+        self.customization_dictionary = customization_dictionary
 
     def __str__(self):
         return [f"Great, your order for the {self.sub_name} "
