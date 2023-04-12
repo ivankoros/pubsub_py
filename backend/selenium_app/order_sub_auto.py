@@ -8,7 +8,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
-from backend.selenium_app.helpers import webdriver_location_input, input_customizations
+from backend.selenium_app.helpers import webdriver_location_input, build_sub_link
 
 from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
@@ -56,45 +56,48 @@ class OrderSubFunctionDiagnostic():
         return output
 
 
-def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
+def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_agent: bool = False):
     start = time.time()
 
     driver = create_webdriver()
 
     # These are two different identifications for the browser to think it's a different browser
     user_agent_array = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
     ]
 
-    # This reloads the page with per user agent
     # This is extremely important, many times, the first or even second user agent will be blocked (randomly),
     # so they're needed to change the identity of the browser to successfully load in the page (the hardest part)
-    sub_hyphen_split = re.sub(" ", "-", self.sub_name.lower())
 
-    for i in range(len(user_agent_array)):
-        # Setting user agent iteratively as Chrome 108 and 107
-        driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
-        diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
-        driver.get(f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}/")
+    sub_link = build_sub_link(self=self)
 
-    # This sets the webdriver to undefined, so that the browser thinks it's not a webdriver
-    # Again, changing identity to get past initial automation block
+    if use_user_agent:
+        for i in range(len(user_agent_array)):
+            # Setting user agent iteratively as Chrome 108 and 107
+            driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": user_agent_array[i]})
+            diagnostic.user_agent = driver.execute_script("return navigator.userAgent;")
+    else:
+        driver.get(sub_link)
+
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
-    webdriver_location_input(driver,
+    time.sleep(random.randint(2, 5))
+
+    webdriver_location_input(driver=driver,
                              store_name=self.store_name,
                              store_address=self.store_address)
 
+    # Click on the sub link
+    customized_sub_link = build_sub_link(self=self,
+                                         customization_dictionary=self.customization_dictionary)
 
-    driver.get(f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}/builder")
-
-    input_customizations(driver=driver)
+    driver.get(customized_sub_link)
 
     # Press add to cart button
-    driver.implicitly_wait(5)
-    add_to_cart_button = '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button'
-    driver.find_element(By.XPATH, add_to_cart_button).click()
+    add_to_cart_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="body-wrapper"]/div/div[2]/div/div/div[2]/button')))
+    add_to_cart_button.click()
+    time.sleep(2)
 
     """ Go directly to check out by going to this link
     Instead of clicking review order, confirming store, and then clicking the checkout button,
@@ -104,7 +107,7 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic):
     sub to be added to the cart which we're going to. Otherwise, the sub won't be in the cart when
     we go to the checkout page.
     """
-    time.sleep(2)
+
     driver.get('https://www.publix.com/shop-online/in-store-pickup/checkout')
 
     # A prompt pops up asking to confirm my location (sometimes) and I click on the button to confirm it
@@ -201,7 +204,15 @@ if __name__ == '__main__':
                      first_name='John',
                      last_name='Doe',
                      phone_number='(555) 555-5555',
-                     email='John.Doe@gmail.com')
+                     email='John.Doe@gmail.com',
+                     customization_dictionary={'Bread': 'Whole Wheat',
+                                               'Cheese': 'Swiss',
+                                               'Condiments': "Boar's Head Honey Mustard",
+                                               'Extras': 'Hummus',
+                                               'Heating Options': 'Toasted',
+                                               'Make it a Combo': 'None',
+                                               'Size': 'Whole',
+                                               'Toppings': 'Banana Peppers, Dill Pickles, Lettuce, Oil & Vinegar Packets'})
 
     order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic())
 
