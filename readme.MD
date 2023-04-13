@@ -13,7 +13,7 @@ Supported by an AWS-hosted MySQL cloud database and Docker runtimes for efficien
 PubSub Py makes grabbing a quick lunch easy on your wallet and mind.
 
 ## Flow diagram
-![Flow](Flowchart.svg)
+![Flow](pubsubpy_Flow.svg)
 
 ## Getting Started
 
