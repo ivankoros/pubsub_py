@@ -5,7 +5,7 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from backend.nlp.order_text_processing import find_closest_sandwich_sk
+from backend.nlp.order_text_processing import vectorized_string_match
 
 
 def webdriver_location_input(driver, store_name, store_address):
@@ -195,8 +195,8 @@ def build_sub_link(self, customization_dictionary: dict = None):
                 options = [options]
 
             for topping in options:
-                if find_closest_sandwich_sk(topping, all_customizations):
-                    topping_found = find_closest_sandwich_sk(topping, all_customizations)
+                if vectorized_string_match(topping, all_customizations):
+                    topping_found = vectorized_string_match(topping, all_customizations)
                     print(f"Found {topping} as {topping_found} in customizations_map")
                     selected_ids.append(customizations_map[topping_found])
                 else:
