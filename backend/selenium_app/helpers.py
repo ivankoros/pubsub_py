@@ -5,6 +5,7 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from backend.nlp.order_text_processing import find_closest_sandwich_sk
 
 
 def webdriver_location_input(driver, store_name, store_address):
@@ -55,6 +56,7 @@ def webdriver_location_input(driver, store_name, store_address):
 
 
 def build_sub_link(self, customization_dictionary: dict = None):
+
     sub_hyphen_split = re.sub(" ", "-", self.sub_name.lower())
 
     sub_link = f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}"
@@ -100,7 +102,7 @@ def build_sub_link(self, customization_dictionary: dict = None):
         "Lettuce": "10-8",
         "Onions": "10-10",
         "Spinach": "10-141",
-        "Tomatoes": "10-9",
+        "Tomato": "10-9",
         "Salt": "10-20",
         "Pepper": "10-21",
         "Oregano": "10-23",
@@ -113,9 +115,9 @@ def build_sub_link(self, customization_dictionary: dict = None):
         "Yellow Mustard": "186-5",
         "Vegan Ranch Dressing": "186-911",
         "Buttermilk Ranch": "186-2377",
-        "Boar's Head® Pepperhouse Gourmaise": "186-145",
-        "Boar's Head® Chipotle Gourmaise": "186-1522",
-        "Boar's Head® Sub Dressing": "186-1521",
+        "Boar's Head Pepperhouse Gourmaise": "186-145",
+        "Boar's Head Chipotle Gourmaise": "186-1522",
+        "Boar's Head Sub Dressing": "186-1521",
         "Deli Sub Sauce": "186-1523",
 
         # Heating Options
@@ -127,24 +129,81 @@ def build_sub_link(self, customization_dictionary: dict = None):
         # "Yes": "183-775",
         # "No Thanks": "183-775",
     }
+
+    all_customizations = [
+        "Half",
+        "Whole",
+        "Italian 5 Grain",
+        "White",
+        "Whole Wheat",
+        "Flatbread",
+        "No Bread (Make it a Salad) - Lettuce Base",
+        "No Bread (Make it a Salad) - Spinach Base",
+        "Pepper Jack",
+        "Cheddar",
+        "Muenster",
+        "Provolone",
+        "Swiss",
+        "White American",
+        "Yellow American",
+        "No Cheese",
+        "Double Meat",
+        "Double Cheese",
+        "Bacon",
+        "Guacamole",
+        "Hummus",
+        "Avocado",
+        "Banana Peppers",
+        "Black Olives",
+        "Boar's Head Garlic Pickles",
+        "Cucumbers",
+        "Dill Pickles",
+        "Green Peppers",
+        "Jalapeno Peppers",
+        "Lettuce",
+        "Onions",
+        "Spinach",
+        "Tomato",
+        "Salt",
+        "Black Pepper",
+        "Oregano",
+        "Oil & Vinegar Packets",
+        "Boar's Head Honey Mustard",
+        "Boar's Head Spicy Mustard",
+        "Mayonnaise",
+        "Yellow Mustard",
+        "Vegan Ranch Dressing",
+        "Buttermilk Ranch",
+        "Boar's Head Sub Dressing",
+        "Boar's Head Pepperhouse Gourmaise",
+        "Boar's Head Chipotle Gourmaise",
+        "Deli Sub Sauce",
+        "Pressed",
+        "Toasted",
+        "Yes",
+        "No Thanks"
+    ]
+
     if customization_dictionary:
-        print("detected customizations")
         selected_ids = []
 
         for category, options in customization_dictionary.items():
-            if options == "None":
-                continue
 
-            toppings = options.split(", ")
-            for topping in toppings:
-                if topping in customizations_map:
-                    selected_ids.append(customizations_map[topping])
-                    print(f"Found {topping} in customizations_map in {category} category")
+            if options == "None" or not options:
+                continue
+            elif isinstance(options, str):
+                options = [options]
+
+            for topping in options:
+                if find_closest_sandwich_sk(topping, all_customizations):
+                    topping_found = find_closest_sandwich_sk(topping, all_customizations)
+                    print(f"Found {topping} as {topping_found} in customizations_map")
+                    selected_ids.append(customizations_map[topping_found])
                 else:
                     print(f"Could not find {topping} in customizations_map")
 
         link_list = ",".join(indv_id for indv_id in selected_ids)
         sub_link += f"/builder/?modifiers={link_list}&quantity=1"
 
-    print(sub_link)
+    print(f"Sub link: {sub_link}")
     return sub_link
