@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from flask import request
 from concurrent.futures import ThreadPoolExecutor
-from backend.nlp import find_closest_sandwich_sk
+from backend.nlp import vectorized_string_match
 import re
 import random
 
@@ -13,7 +13,7 @@ from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches,
 from backend.twilio_app.publix_api import query_deals, find_publix_store_id, find_sub_id
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
-from backend.nlp.order_text_processing import parse_customizations
+from backend.nlp.order_text_processing import parse_customizations, find_sub_match
 
 
 # Find/initialize the user
@@ -149,7 +149,7 @@ def confirm_store_action(body, session, user):
             body = int(body)
             store = user.nearest_stores[body - 1]
         else:
-            store = find_closest_sandwich_sk(body, [store['name'] for store in user.nearest_stores])
+            store = vectorized_string_match(body, [store['name'] for store in user.nearest_stores])
             store = next((s for s in user.nearest_stores if s['name'] == store), None)
 
         if store:
@@ -282,8 +282,7 @@ def order_sub_action(body, session, user, *args):
     if 'exit' in body:
         return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
-    if find_closest_sandwich_sk(item_to_match=body, match_possibilities_list=all_sandwiches) != "No match found":
-        # TODO expand on this as a lsit of steps
+    if vectorized_string_match(item_to_match=find_sub_match(body), match_possibilities_list=all_sandwiches) != "No match found":
         """ What is nearest_interval_time()?
 
             This is my custom function to get the nearest 30 minute interval 
@@ -307,7 +306,8 @@ def order_sub_action(body, session, user, *args):
         order_date = datetime.today().date().strftime("%A, %B %d, %Y")
         order_time = nearest_interval_time()
 
-        sandwich = find_closest_sandwich_sk(body, all_sandwiches)
+        general_sub_match = find_sub_match(body)
+        sandwich = vectorized_string_match(general_sub_match, all_sandwiches)
         sandwich_id = find_sub_id(store_id=store_id, sub_name=sandwich)
 
         first_name, last_name, email, phone_number = generate_user_info()
