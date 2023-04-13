@@ -57,7 +57,8 @@ def webdriver_location_input(driver, store_name, store_address):
 
 def build_sub_link(self, customization_dictionary: dict = None):
 
-    sub_hyphen_split = re.sub(" ", "-", self.sub_name.lower())
+    sub_no_apostrophe = re.sub("'", "", self.sub_name.lower())
+    sub_hyphen_split = re.sub(" ", "-", sub_no_apostrophe)
 
     sub_link = f"https://www.publix.com/pd/{sub_hyphen_split}/{self.sub_id}"
 
