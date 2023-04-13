@@ -128,6 +128,7 @@ def build_sub_link(self, customization_dictionary: dict = None):
         # "No Thanks": "183-775",
     }
     if customization_dictionary:
+        print("detected customizations")
         selected_ids = []
 
         for category, options in customization_dictionary.items():
@@ -138,10 +139,12 @@ def build_sub_link(self, customization_dictionary: dict = None):
             for topping in toppings:
                 if topping in customizations_map:
                     selected_ids.append(customizations_map[topping])
+                    print(f"Found {topping} in customizations_map in {category} category")
                 else:
-                    logging.warning(f"Could not find {topping} in customizations_map")
+                    print(f"Could not find {topping} in customizations_map")
 
         link_list = ",".join(indv_id for indv_id in selected_ids)
         sub_link += f"/builder/?modifiers={link_list}&quantity=1"
 
+    print(sub_link)
     return sub_link
