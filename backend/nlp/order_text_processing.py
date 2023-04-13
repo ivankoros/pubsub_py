@@ -51,6 +51,12 @@ def find_synonyms(word):
 
 def vectorized_string_match(item_to_match, match_possibilities_list=all_sandwiches):
     # Clean the user's input
+
+    if not item_to_match:
+        print(item_to_match)
+        print("No item to match, its none")
+        return None
+
     user_input_clean = clean_text(item_to_match)
 
     """Convert the sandwich names to TF-IDF vectors
@@ -83,7 +89,7 @@ def vectorized_string_match(item_to_match, match_possibilities_list=all_sandwich
     best_match_score = similarity_scores[best_match_index]
     best_match = match_possibilities_list[best_match_index]
 
-    return best_match if best_match_score >= 0.5 else "No match found"
+    return best_match if best_match_score >= 0.5 else None
 
 
 def parse_customizations(user_order_text):
@@ -138,15 +144,24 @@ def parse_customizations(user_order_text):
 
 
 def find_sub_match(user_order_text):
-    openai.api_key = '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'
+
+    env_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 'config\\.env'))
+
+    load_dotenv(dotenv_path=env_directory,
+                override=True)
+
+    openai.api_key = os.getenv("OPEN_AI_API_KEY")
 
     messages = [
         {
             "role": "system",
             "content": (
-                "You'll be given a user's sandwich order at a deli. Determine which of the sandwiches from the following sandwich_list is the closest match to the user's order. If no match is found, return None. \n"
-
-                "Return the exact name of the most likely match exactly as it appears in the list as a string. For example, if the user says 'I want a Boar's Head Turkey sub with chipotle sauce, onions, tomatos, mayonais, olives, and cucumbers on italian grain bread', only return: 'Boar's Head Turkey Sub' \n"
+                "You'll be given a user's sandwich order. Determine which of the sandwiches from the following "
+                "sandwich_list is the closest match to the user's order. \n"
+                ""
+                "Follow this rule: If no match is found, return None. \n"
+                "Follow this rule: Return the exact name of the most likely match exactly as it appears in the "
+                "list as a string. For example, if the user says 'I want a Boar's Head Turkey sub with chipotle sauce, onions, tomatos, mayonais, olives, and cucumbers on italian grain bread', only return: 'Boar's Head Turkey Sub' \n"
 
                 "Here is the list of sandwiches the user can choose from: ["
                 "Boar's Head Ultimate Sub, "
@@ -242,7 +257,7 @@ def find_sub_match(user_order_text):
 
     response = completion.choices[0].message['content']
 
-    try:
-        print(f"String response: {response}")
-    except (ValueError, SyntaxError) as e:
-        print("Error:", e)
+    print(f"Order: {user_order_text}")
+
+    return response
+
