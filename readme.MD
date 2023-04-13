@@ -9,11 +9,14 @@ Utilizing the **Publix API**, PubSub Py queries daily deals from your local Publ
 via text through **Twilio**. A **scikit-learn vectorization** model and the **Open AI API** work together to accurately parse user
 responses, enabling **Selenium** 4 browser automation to order a custom sub in less than 10 seconds.
 
+Beforehand, the Google Maps API is used to find stores near your location, and Python's GeoPy is used to rank them by shortest distance to you, allowing
+you to easily pick your favorite store. Your geo information is securely stored, and will be remembered after your first input.
+
 Supported by an AWS-hosted MySQL cloud database and Docker runtimes for efficient containerized deployment, 
 PubSub Py makes grabbing a quick lunch easy on your wallet and mind.
 
 ## Flow diagram
-![Flow](pubsubpy_Flow.svg)
+![Flow](pubsubpy_flow.svg)
 
 ## Getting Started
 
