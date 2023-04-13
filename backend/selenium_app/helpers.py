@@ -5,7 +5,7 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from backend.nlp.order_text_processing import vectorized_string_match
+from backend.twilio_app.helpers import fuzzy_string_match
 
 
 def webdriver_location_input(driver, store_name, store_address):
@@ -193,15 +193,22 @@ def build_sub_link(self, customization_dictionary: dict = None):
             if options == "None" or not options:
                 continue
             elif isinstance(options, str):
-                options = [options]
+                options = [choice for choice in options.split(", ")]
 
-            for topping in options:
-                if vectorized_string_match(topping, all_customizations):
-                    topping_found = vectorized_string_match(topping, all_customizations)
-                    print(f"Found {topping} as {topping_found} in customizations_map")
-                    selected_ids.append(customizations_map[topping_found])
-                else:
-                    print(f"Could not find {topping} in customizations_map")
+                for topping in options:
+                    if fuzzy_string_match(topping, all_customizations):
+                        topping_found = fuzzy_string_match(topping, all_customizations)
+                        selected_ids.append(customizations_map[topping_found])
+                        print(f"Found {topping} as {topping_found} in customizations_map")
+
+                    else:
+                        print(f"Could not find {topping} in customizations_map")
+
+        # Add heating option and size if not specified
+        if not re.match(r"8-\d+", selected_ids[0]):
+            selected_ids.insert(0, "8-43")
+        if not re.match(r"9-\d+", selected_ids[0]):
+            selected_ids.insert(0, "9-25")
 
         link_list = ",".join(indv_id for indv_id in selected_ids)
         sub_link += f"/builder/?modifiers={link_list}&quantity=1"
