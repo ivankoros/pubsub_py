@@ -143,15 +143,14 @@ def nearest_interval_time(timezone='US/Eastern', length_interval=30, update_inte
 
     return formatted_time
 
-def closest_string_match_fuzzy(item_to_match, match_possibilities_list, match_threshold=70):
+def fuzzy_string_match(item_to_match, match_possibilities_list, match_threshold=70):
     # Find the best match using fuzzy string matching
     best_match, score = process.extractOne(item_to_match, match_possibilities_list)
 
     if score >= match_threshold:
         return best_match
     else:
-        # Todo change this to a boolean and update the functions its in
-        return "No match found"
+        return None
 
 
 # This is the function that I'm trying to test that takes in the geolocation
