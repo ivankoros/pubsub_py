@@ -118,13 +118,17 @@ def find_sub_id(store_id, sub_name):
     )
 
     response = response.json()
+    found_product_id = None
     for product in response['Products']:
-        if html.unescape(product['title']) == sub_name:
-            print(product['Productid'])
+        cleaned_title = re.sub('®', '', html.unescape(product['title']))
+        if cleaned_title == sub_name:
+            found_product_id = product['Productid']
+            break
 
-            return product['Productid']
+    if found_product_id is None:
+        raise ValueError(f"Could not find product ID for {sub_name} at store {store_id}")
 
-    print("Sub ID not found")
+    return found_product_id
 
 
 if __name__ == '__main__':
