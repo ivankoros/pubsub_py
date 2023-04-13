@@ -10,6 +10,7 @@ import ast
 from pprint import pprint
 from dotenv import load_dotenv
 
+
 def clean_text(user_text_input):
     nltk.download('stopwords')
     text = user_text_input.lower()
@@ -48,7 +49,7 @@ def find_synonyms(word):
     return list(synonyms)
 
 
-def find_closest_sandwich_sk(item_to_match, match_possibilities_list=all_sandwiches):
+def vectorized_string_match(item_to_match, match_possibilities_list=all_sandwiches):
     # Clean the user's input
     user_input_clean = clean_text(item_to_match)
 
@@ -84,8 +85,8 @@ def find_closest_sandwich_sk(item_to_match, match_possibilities_list=all_sandwic
 
     return best_match if best_match_score >= 0.5 else "No match found"
 
-def parse_customizations(user_order_text):
 
+def parse_customizations(user_order_text):
     env_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 'config\\.env'))
 
     load_dotenv(dotenv_path=env_directory,
@@ -131,7 +132,117 @@ def parse_customizations(user_order_text):
         print(f"Order: {user_order_text}")
         print(f"String response: {response}")
         print("\n")
-        pprint(ast.literal_eval(response))
         return ast.literal_eval(response)
+    except (ValueError, SyntaxError) as e:
+        print("Error:", e)
+
+
+def find_sub_match(user_order_text):
+    openai.api_key = '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'
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You'll be given a user's sandwich order at a deli. Determine which of the sandwiches from the following sandwich_list is the closest match to the user's order. If no match is found, return None. \n"
+
+                "Return the exact name of the most likely match exactly as it appears in the list as a string. For example, if the user says 'I want a Boar's Head Turkey sub with chipotle sauce, onions, tomatos, mayonais, olives, and cucumbers on italian grain bread', only return: 'Boar's Head Turkey Sub' \n"
+
+                "Here is the list of sandwiches the user can choose from: ["
+                "Boar's Head Ultimate Sub, "
+                "Boar's Head Turkey Sub, "
+                "Publix Italian Sub, "
+                "Publix Chicken Tender Sub, "
+                "Boar's Head Italian Sub, "
+                "Publix Turkey Sub, "
+                "Boar's Head Ham Sub, "
+                "Boar's Head Italian Wrap, "
+                "Publix Veggie Sub, "
+                "Boar's Head Maple Honey Turkey Sub, "
+                "Boar's Head Roast Beef Sub, "
+                "Publix Ultimate Sub, "
+                "Publix Turkey Wrap, "
+                "Boar's Head Ultimate Wrap, "
+                "Publix Veggie Wrap, "
+                "Chicken Cordon Bleu Sub Hot, "
+                "Boar's Head Honey Turkey Wrap, "
+                "Boar's Head Jerk Turkey & Gouda Sub, "
+                "Publix Tuna Salad Sub, "
+                "Publix Homestyle Beef Meatball Sub, "
+                "Publix Italian Wrap, "
+                "Boar's Head Roast Beef Wrap, "
+                "Publix Ham Sub, "
+                "Boar's Head Ham and Turkey Sub, "
+                "Publix Deli Spicy Falafel Sub Wrap Hot, "
+                "Publix Roast Beef Sub, "
+                "Publix Ultimate Wrap, "
+                "Publix Chicken Salad Wrap, "
+                "Boar's Head Everroast Wrap, "
+                "Publix Deli Spicy Falafel Sub, "
+                "Boar's Head Philly Cheese Sub, "
+                "Boar's Head Havana Bold Sub, "
+                "Boar's Head EverRoast Sub, "
+                "Publix Deli Tex Mex Black Bean Burger Sub, "
+                "Publix Ham Wrap, "
+                "Boar's Head Low Sodium Ultimate Sub,"
+                "Boar's Head Philly Wrap, "
+                "Publix Ham & Turkey Sub, "
+                "Publix Greek Sub, "
+                "Publix Deli Meatless Turkey Club Sub, "
+                "Boar's Head Ham Wrap, "
+                "Publix Roast Beef Wrap, "
+                "Publix Egg Salad Wrap, "
+                "Publix Deli Baked Chicken Tender Wrap, "
+                "Publix Deli Baked Chicken Tender Sub, "
+                "Publix Tuna Salad Wrap, "
+                "Boar's Head BLT Hot Sub, "
+                "Boar's Head Low Sodium Turkey Sub, "
+                "Boar's Head Blt Wrap, "
+                "Publix Chicken Salad Sub, "
+                "Publix Philly Cheese Sub, "
+                "Publix Egg Salad Sub, "
+                "Publix Deli Meatless Turkey Club Sub Wrap, "
+                "Publix Deli Tex Mex Black Bean Burger Wrap, "
+                "Publix Cuban Sub, "
+                "Publix Deli Ham Salad Sub, "
+                "Boar's Head Cajun Turkey Sub, "
+                "Boar's Head Chipotle Chicken Wrap, "
+                "Boar's Head Cracked Pepper Turkey Sub, "
+                "Publix Deli Nashville Hot Chicken Tender Su, "
+                "Publix Deli Nashville Hot Chicken Tender Wr, "
+                "Reuben - Corned Beef, "
+                "Publix Garlic and Herb Tofu Sub, "
+                "Reuben - Turkey, "
+                "Publix Deli Greek Wrap, "
+                "Publix Deli Meatless Turkey Club Sub Wrap Hot,"
+                "Publix Ham Salad Wrap, "
+                "Boar's Head Deluxe Sub, "
+                "Publix Ham and Turkey Wrap, "
+                "Boar's Head Deluxe Wrap, "
+                "Publix Cuban Wrap, "
+                "Boar's Head American Wrap, "
+                "Boar's Head Low Sodium Ham Sub, "
+                "Boar's Head American Sub, "
+                "Publix Deli Mojo Pork Sub, "
+                "Boar's Head Cajun Turkey Wrap, "
+                "Boar's Head Chipotle Chicken Sub, "
+                "Boar's Head Cracked Pepper Turkey Wrap, "
+                "Publix Deli Meatless Philly Sub Hot."
+            ),
+        },
+        {"role": "user", "content": f"Sandwich order: {user_order_text}"}
+
+    ]
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        temperature=0.1,
+    )
+
+    response = completion.choices[0].message['content']
+
+    try:
+        print(f"String response: {response}")
     except (ValueError, SyntaxError) as e:
         print("Error:", e)
