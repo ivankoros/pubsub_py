@@ -1,1 +1,1 @@
-from backend.nlp.order_text_processing import find_closest_sandwich_sk, parse_customizations
+from backend.nlp.order_text_processing import vectorized_string_match, parse_customizations
