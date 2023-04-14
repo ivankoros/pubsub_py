@@ -7,7 +7,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import openai
 import os
 import ast
-from pprint import pprint
 from dotenv import load_dotenv
 
 
@@ -50,11 +49,8 @@ def find_synonyms(word):
 
 
 def vectorized_string_match(item_to_match, match_possibilities_list=all_sandwiches):
-    # Clean the user's input
 
     if not item_to_match:
-        print(item_to_match)
-        print("No item to match, its none")
         return None
 
     user_input_clean = clean_text(item_to_match)
@@ -135,9 +131,6 @@ def parse_customizations(user_order_text):
     response = completion.choices[0].message['content']
 
     try:
-        print(f"Order: {user_order_text}")
-        print(f"String response: {response}")
-        print("\n")
         return ast.literal_eval(response)
     except (ValueError, SyntaxError) as e:
         print("Error:", e)
@@ -256,8 +249,6 @@ def find_sub_match(user_order_text):
     )
 
     response = completion.choices[0].message['content']
-
-    print(f"Order: {user_order_text}")
 
     return response
 
