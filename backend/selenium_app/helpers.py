@@ -84,6 +84,7 @@ def build_sub_link(self, customization_dictionary: dict = None):
         "Swiss": "6-34",
         "White American": "6-37",
         "Yellow American": "6-36",
+        "No Cheese": "6-40",
 
         # Extras
         "Double Meat": "185-1",
@@ -131,60 +132,6 @@ def build_sub_link(self, customization_dictionary: dict = None):
         # "No Thanks": "183-775",
     }
 
-    all_customizations = [
-        "Half",
-        "Whole",
-        "Italian 5 Grain",
-        "White",
-        "Whole Wheat",
-        "Flatbread",
-        "No Bread (Make it a Salad) - Lettuce Base",
-        "No Bread (Make it a Salad) - Spinach Base",
-        "Pepper Jack",
-        "Cheddar",
-        "Muenster",
-        "Provolone",
-        "Swiss",
-        "White American",
-        "Yellow American",
-        "No Cheese",
-        "Double Meat",
-        "Double Cheese",
-        "Bacon",
-        "Guacamole",
-        "Hummus",
-        "Avocado",
-        "Banana Peppers",
-        "Black Olives",
-        "Boar's Head Garlic Pickles",
-        "Cucumbers",
-        "Dill Pickles",
-        "Green Peppers",
-        "Jalapeno Peppers",
-        "Lettuce",
-        "Onions",
-        "Spinach",
-        "Tomato",
-        "Salt",
-        "Black Pepper",
-        "Oregano",
-        "Oil & Vinegar Packets",
-        "Boar's Head Honey Mustard",
-        "Boar's Head Spicy Mustard",
-        "Mayonnaise",
-        "Yellow Mustard",
-        "Vegan Ranch Dressing",
-        "Buttermilk Ranch",
-        "Boar's Head Sub Dressing",
-        "Boar's Head Pepperhouse Gourmaise",
-        "Boar's Head Chipotle Gourmaise",
-        "Deli Sub Sauce",
-        "Pressed",
-        "Toasted",
-        "Yes",
-        "No Thanks"
-    ]
-
     if customization_dictionary:
         selected_ids = []
 
@@ -196,8 +143,8 @@ def build_sub_link(self, customization_dictionary: dict = None):
                 options = [choice for choice in options.split(", ")]
 
                 for topping in options:
-                    if fuzzy_string_match(topping, all_customizations):
-                        topping_found = fuzzy_string_match(topping, all_customizations)
+                    if fuzzy_string_match(topping, customizations_map.keys()):
+                        topping_found = fuzzy_string_match(topping, customizations_map.keys())
                         selected_ids.append(customizations_map[topping_found])
                         print(f"Found {topping} as {topping_found} in customizations_map")
 
