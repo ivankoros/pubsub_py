@@ -197,7 +197,6 @@ def find_nearest_stores(location, result_count=3):
         print(f"{i + 1}. {result['name']}")
         print(f"   Address: {result['address']}")
         print(f"   Distance: {round(result['distance'])} meters")
-        print()
 
     # Return up to the number of results specified (default is 3)
     return places[:result_count]
