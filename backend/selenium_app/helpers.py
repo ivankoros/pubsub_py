@@ -146,10 +146,10 @@ def build_sub_link(self, customization_dictionary: dict = None):
                     if fuzzy_string_match(topping, customizations_map.keys()):
                         topping_found = fuzzy_string_match(topping, customizations_map.keys())
                         selected_ids.append(customizations_map[topping_found])
-                        print(f"Found {topping} as {topping_found} in customizations_map")
 
+                        print(f"SUCCESS: Found {topping} as {topping_found} in customizations_map")
                     else:
-                        print(f"Could not find {topping} in customizations_map")
+                        print(f"FAILURE: Could not find {topping} in customizations_map")
 
         # Add heating option and size if not specified
         if not re.match(r"8-\d+", selected_ids[0]):
@@ -160,5 +160,5 @@ def build_sub_link(self, customization_dictionary: dict = None):
         link_list = ",".join(indv_id for indv_id in selected_ids)
         sub_link += f"/builder/?modifiers={link_list}&quantity=1"
 
-    print(f"Sub link: {sub_link}")
+    print(f"\nSub link: {sub_link} \n")
     return sub_link
