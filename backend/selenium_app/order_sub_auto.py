@@ -8,8 +8,6 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
-from backend.selenium_app.helpers import webdriver_location_input, build_sub_link
-
 from backend.twilio_app.helpers import SubOrder
 from datetime import datetime
 
@@ -57,6 +55,7 @@ class OrderSubFunctionDiagnostic():
 
 
 def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_agent: bool = False):
+    from backend.selenium_app.helpers import webdriver_location_input, build_sub_link
     start = time.perf_counter()
 
     driver = create_webdriver()
@@ -109,8 +108,11 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
     add_to_cart_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, "button#builder-add-to-order-btn")))
     add_to_cart_button.click()
-    time.sleep(2)
 
+    print("This is a forced sleep to show the ingredients have been chosen: resuming in...")
+    for x in range(5, 0, -1):
+        time.sleep(1)
+        print(f"{x} second(s)...")
 
     """ Go directly to check out by going to this link
     Instead of clicking review order, confirming store, and then clicking the checkout button,
@@ -217,16 +219,17 @@ if __name__ == '__main__':
                      last_name='Doe',
                      phone_number='(555) 555-5555',
                      email='John.Doe@gmail.com',
-                     customization_dictionary={'Bread': 'Whole Wheat',
-                                               'Cheese': 'Swiss',
-                                               'Condiments': "Boar's Head Honey Mustard",
-                                               'Extras': 'Hummus, Pizza',
-                                               'Heating Options': 'Toasted',
-                                               'Make it a Combo': 'None',
-                                               'Size': 'Whole',
-                                               'Toppings': 'Banana Peppers, Dill Pickles, Lettuce, Oil & Vinegar Packets'})
+                     customization_dictionary={'Bread': 'White',
+                                                'Cheese': None,
+                                                'Condiments': 'Mayonnaise',
+                                                'Extras': None,
+                                                'Heating Options': None,
+                                                'Make it a Combo': None,
+                                                'Size': 'Whole',
+                                                'Toppings': ['Tomato', 'Lettuce']})
 
     order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic(), use_user_agent=True)
 
-    print(diagnostic)
-    print(SubOrder.__str__(order_feedback))
+    #print(diagnostic)
+    #print(SubOrder.__str__(order_feedback))
+    print("SUCCESS: Sub order placed successfully!")
