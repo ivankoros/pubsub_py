@@ -5,11 +5,11 @@ from concurrent.futures import ThreadPoolExecutor
 from backend.nlp import vectorized_string_match
 import re
 import random
-
-from backend.resources import SubDeal
+from pprint import pprint
 from backend.resources import Users
 from backend.twilio_app.helpers import (TextResponses, SubOrder, all_sandwiches, generate_user_info,
-                                        nearest_interval_time, find_nearest_stores, find_zip)
+                                        nearest_interval_time, find_nearest_stores, find_zip,
+                                        fuzzy_string_match)
 from backend.twilio_app.publix_api import query_deals, find_publix_store_id, find_sub_id
 
 from backend.selenium_app.order_sub_auto import order_sub, OrderSubFunctionDiagnostic
@@ -131,7 +131,7 @@ def confirm_store_action(body, session, user):
                     list of nearest stores.
 
                 2. If the user's input is a string, then it's referring to the name of the store.
-                    I use fuzzy string matching to find the closest match to the user's input. By
+                    I use vectorized string matching to find the closest match to the user's input. By
                     comparing the user's input to the top three store names I gave them.
 
                 If either of these are satisfied, their preferred store location is picked and saved
@@ -149,7 +149,7 @@ def confirm_store_action(body, session, user):
             body = int(body)
             store = user.nearest_stores[body - 1]
         else:
-            store = vectorized_string_match(body, [store['name'] for store in user.nearest_stores])
+            store = fuzzy_string_match(body, [store['name'] for store in user.nearest_stores])
             store = next((s for s in user.nearest_stores if s['name'] == store), None)
 
         if store:
@@ -249,7 +249,7 @@ def order_sub_action(body, session, user, *args):
     1. If the user says 'exit', then they are taken back to the default state.
 
     2. If the user does not say exit, I treat the user's input as a potential sub name
-        they're trying to say, and use fuzzy logic string matching to compare it against
+        they're trying to say, and use vectorized model string matching to compare it against
         all the sub names in the database. If there is a match above the cutoff (set default at 70%),
         then I return the name of the sub. Otherwise, I return 'No match found', and prompt the user
         to try again.
@@ -282,7 +282,8 @@ def order_sub_action(body, session, user, *args):
     if 'exit' in body:
         return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
 
-    if vectorized_string_match(item_to_match=find_sub_match(body), match_possibilities_list=all_sandwiches) != "No match found":
+    if vectorized_string_match(item_to_match=find_sub_match(body), match_possibilities_list=all_sandwiches):
+
         """ What is nearest_interval_time()?
 
             This is my custom function to get the nearest 30 minute interval 
@@ -314,7 +315,6 @@ def order_sub_action(body, session, user, *args):
 
         customization_dictionary = parse_customizations(body)
 
-        from pprint import pprint
         pprint(customization_dictionary)
 
         order = SubOrder(
