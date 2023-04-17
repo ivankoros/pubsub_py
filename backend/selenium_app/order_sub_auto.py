@@ -54,7 +54,8 @@ class OrderSubFunctionDiagnostic():
         return output
 
 
-def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_agent: bool = False):
+def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_agent: bool = False,
+              actually_submit: bool = False):
     from backend.selenium_app.helpers import webdriver_location_input, build_sub_link
     start = time.perf_counter()
 
@@ -110,9 +111,10 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
     add_to_cart_button.click()
 
     print("This is a forced sleep to show the ingredients have been chosen: resuming in...")
-    for x in range(5, 0, -1):
+    for x in range(20, 0, -1):
         time.sleep(1)
-        print(f"{x} second(s)...")
+        print(f"{x}")
+    print("Resuming...")
 
     """ Go directly to check out by going to this link
     Instead of clicking review order, confirming store, and then clicking the checkout button,
@@ -193,6 +195,19 @@ def order_sub(self: SubOrder, diagnostic: OrderSubFunctionDiagnostic, use_user_a
     driver.execute_script("arguments[0].click();", pay_in_store_button)
 
     # Later, here will be the click for the final submit button, which will put the order to the chosen deli officially
+    if actually_submit:
+        submit_order_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "Place")]/ancestor::button'))
+        )
+        submit_order_button.click()
+
+    print("This is a forced sleep to show the confirmation page, closing in 10 seconds...")
+    for x in range(10, 0, -1):
+        time.sleep(1)
+        print(f"{x}")
+    print("Closing...")
+
+    print("SUCCESS: Order placed!")
     driver.quit()
 
     # Stop the timer
@@ -220,16 +235,16 @@ if __name__ == '__main__':
                      phone_number='(555) 555-5555',
                      email='John.Doe@gmail.com',
                      customization_dictionary={'Bread': 'White',
-                                                'Cheese': None,
-                                                'Condiments': 'Mayonnaise',
-                                                'Extras': None,
-                                                'Heating Options': None,
-                                                'Make it a Combo': None,
-                                                'Size': 'Whole',
-                                                'Toppings': ['Tomato', 'Lettuce']})
+                                               'Cheese': None,
+                                               'Condiments': 'Mayonnaise',
+                                               'Extras': None,
+                                               'Heating Options': None,
+                                               'Make it a Combo': None,
+                                               'Size': 'Whole',
+                                               'Toppings': ['Tomato', 'Lettuce']})
 
     order_feedback, diagnostic = order_sub(order, diagnostic=OrderSubFunctionDiagnostic(), use_user_agent=True)
 
-    #print(diagnostic)
-    #print(SubOrder.__str__(order_feedback))
+    # print(diagnostic)
+    # print(SubOrder.__str__(order_feedback))
     print("SUCCESS: Sub order placed successfully!")
