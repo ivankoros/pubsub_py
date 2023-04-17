@@ -332,8 +332,8 @@ def order_sub_action(body, session, user, *args):
         )
 
         def submit_order():
-            order_sub(self=order,
-                      diagnostic=OrderSubFunctionDiagnostic())
+            order_sub(self=order, diagnostic=OrderSubFunctionDiagnostic(),
+                      actually_submit=False)
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
