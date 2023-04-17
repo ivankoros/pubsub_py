@@ -23,6 +23,7 @@ def incoming_sms():
     where the user left off.
     
     """
+
     user = get_user(session)
     print(f"user says: {request.values.get('Body', '')}")
 
