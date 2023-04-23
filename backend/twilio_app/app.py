@@ -1,12 +1,9 @@
 from flask import Flask, Response, request
-from flask_restful import Resource, Api
 from twilio.twiml.messaging_response import MessagingResponse
 from backend.resources import initialize_database
 from backend.twilio_app.state_flow_mechanism import get_user, state_info
-from backend.resources import Users
 
 app = Flask(__name__)
-api = Api(app)
 
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -27,19 +24,17 @@ def incoming_sms():
     user = get_user(session)
     print(f"user says: {request.values.get('Body', '')}")
 
-    """Use my state flow mechanism to determine what to do next:
-        - What message to send back to the user?
-        - What state can the user come and go from?
-        - What action should be taken when the user sends a message?
+    """Use the state flow mechanism to determine the next steps:
+        - Determine the message to send back to the user.
+        - Identify the user's current state and the next possible states.
+        - Execute the appropriate action based on the user's message.
         
-        Here, 'action' is a dynamic function that changes based on the users
-        state. It's defined in state_flow_mechanism.py under the state_info
-        dictionary. The function of their current state is called with the
-        user's message (body), the database session (session), and the user
-        object (user).
+        The 'action' is a dynamic function that changes according to the user's state,
+        defined in state_flow_mechanism.py under the state_info dictionary. 
+        The action function takes three arguments: user's message, database session, and user object.
+        Arguments are passed using unpacking to accommodate functions with varying numbers of arguments.
         
-        I now define the arguments for the action function, taking these
-        three arguments:
+        I define the arguments for the action function, taking:
             - message: the user's message
             - session: the database session
             - user: the user object
@@ -80,10 +75,7 @@ def incoming_sms():
         
         4. The user's state is updated to the 'get_name' state in the database.
         
-        5. A MessagingResponse object is created to send back to the user, which
-           is a Twilio object that allows us to send back a message to the user.
-           
-           The message object is set up with all the messages coming from the action
+        5. The message object is set up with all the messages coming from the action
            function, is returned to the Flask app through the Twiml Response object
            through xml as a web response.
            
@@ -120,43 +112,15 @@ def incoming_sms():
     def reply_all_messages(messages_to_send):
         if isinstance(messages_to_send, str):
             resp.message(messages_to_send)
-        else:
+        else:  # It's a list
             for m in messages_to_send:
                 resp.message(m)
 
-    print(f"message back to user: {message}")
+    print(f"Message back to user: {message}")
     reply_all_messages(message)
 
     return Response(str(resp), mimetype="application/xml")
 
-
-class UserData(Resource):
-    """Rest API
-
-        This is the rest API I will use to server my React app later.
-
-    """
-
-    def get(self):
-        session = initialize_database()
-        users = session.query(Users).all()
-
-        users_dict = {"users": []}
-
-        for user in users:
-            user_dict = {
-                "id": user.id,
-                "phone_number": user.phone_number,
-                "name": user.name,
-                "selected_store_address": user.selected_store_address,
-                "state": user.state
-            }
-            users_dict["users"].append(user_dict)
-        return users_dict
-
-
-# Adding the API on the '/' endpoint for requests to access.
-api.add_resource(UserData, '/')
 
 if __name__ == "__main__":
     app.run(debug=True,
