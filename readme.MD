@@ -28,12 +28,11 @@ heading out the door.
 PubSub Py streamlines the Publix deli sub ordering process by leveraging natural language processing and web scraping 
 to empower users to discover local deals and place orders with a single text.
 
-## How can I use this? (development mode)
+### How can I use this?
+- You cannot: this project is a proof-of-concept, not intended for commercial use, and is soley for educational purposes.
 
-- I'm currently editing together a demo video, but in the meantime, you can try it out by texting "hey"
- to ***(406) 729-4950***.
-- As I'm currently (4/24) ensuring Publix in no way gets spammed by this, my Selenium bot is set to not actually click the
-final 'Place order' button. 
+### Legal Disclaimer:
+This project is an independent proof-of-concept application and is not affiliated with, endorsed by, or supported by Publix Super Markets, Inc. or its subsidiaries. It is solely intended for educational purposes and personal use, and is not intended for commercial use or to bypass any restrictions or policies set forth by Publix. The creator of this project does not claim any ownership over the Publix name, logo, or any proprietary information mentioned or used from Publix.com. PubSub Py may not comply with the Terms of Use and Privacy Policy of Publix.com, and the user assumes all risks and responsibility for any legal consequences that may arise due to the use of this application. The creator of this project is not responsible for any potential violations of Publix.com's Terms of Use, Privacy Policy, or any other legal agreements between the user and Publix. By using this application, you acknowledge and accept these risks and responsibilities, and agree to indemnify and hold harmless the creator of PubSub Py from any liability arising from your use of this application. The creator of this project is open to discussing any concerns with Publix to find a solution that complies with their policies. The creator of this project is open to discussing any concerns with Publix to find a solution that complies with their policies.
 
 ## How does it work?
 - **Google Maps** API & GeoPy are used for rapid store location lookup 
