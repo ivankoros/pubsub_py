@@ -206,10 +206,6 @@ def confirm_store_action(body, session, user):
         return 'get_store_location', message
 
 
-def get_sale_action(body, session, *args):
-    pass
-
-
 def default_action(body, session, user, *args):
     # If the user input is recognized, initialize the default state
     if "order" in body.lower():
@@ -307,10 +303,6 @@ def order_sub_action(body, session, user, *args):
             f"You can also say 'exit' to exit ordering"]
 
 
-def confirm_sub_order_action(body, session, user, *args):
-    pass
-
-
 custom_dict = {'Bread': 'Whole Wheat',
                'Cheese': 'Swiss',
                'Condiments': "Boar's Head Honey Mustard",
@@ -341,20 +333,10 @@ state_info = {
         'action': confirm_store_action,
         'next_states': ['get_sale']
     },
-    'get_sale': {
-        'text_response': TextResponses().get_response("help"),
-        'action': get_sale_action,
-        'next_states': ['default', 'order_sub']
-    },
     'order_sub': {
         'text_response:': TextResponses().get_response("order_sub"),
         'action': order_sub_action,
         'next_states': ['default, confirm sub']
-    },
-    'confirm_sub_order': {
-        'text_response:': "",
-        'action': confirm_sub_order_action,
-        'next_states': ['default']
     },
     'default': {
         'text_response': TextResponses().get_response("default"),

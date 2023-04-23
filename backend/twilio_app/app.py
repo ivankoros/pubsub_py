@@ -32,11 +32,10 @@ class Action:
         return self.action(self.message, self.session, self.user, **self.kwargs)
 
     @classmethod
-    def process_user_input(cls, message, session, user):
+    def process_user_input(cls, message, session, user, **kwargs):
         """
         Process user input and execute the corresponding action.
 
-        :param user_state: User's current state (str).
         :param message: User's message (str).
         :param session: Database session.
         :param user: User instance.
