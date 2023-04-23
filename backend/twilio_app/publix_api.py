@@ -5,6 +5,9 @@ import html
 from pprint import pprint
 import re
 
+import re
+
+
 def query_deals(store_id, sort_by_term="onsalemsg"):
     """
     Query the Publix API for deals on subs at the given store by its ID.
@@ -37,8 +40,7 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
     sale_dict = []
 
     for product in decoded_data['Products']:
-        if product['onsalemsg'] == 'On Sale' and "Sub" in product['title']:
-            pprint(product)
+        if product['onsalemsg'] == 'On Sale' and re.search(re.compile('sub*', re.IGNORECASE), product['title']):
             name = re.sub("®", "", html.unescape(product['title']))
             price = re.sub("Starts At \\$", "", product['priceline1'])
             product_id = product['Productid']
@@ -48,7 +50,7 @@ def query_deals(store_id, sort_by_term="onsalemsg"):
                               'product_id': product_id})
 
     if sale_dict:
-        print(f"Found {len(sale_dict)} deals at store ID: {store_id}")
+        print(f"Found {len(sale_dict)} deals at store ID: {store_id}: \n")
         pprint(sale_dict)
     else:
         print(f"No deals found at store ID: {store_id}")
