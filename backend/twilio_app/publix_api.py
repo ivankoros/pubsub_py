@@ -80,21 +80,14 @@ def find_publix_store_id(zip_code, store_name):
     )
 
     response = response.json()
-    pprint(response)
 
-    store_dict = []
-
+    store_id = None
     for store in response['Stores']:
-        store_name = html.unescape(store['NAME'])
-        store_address = store['ADDR']
-        store_id = store['KEY']
-        store_entry = {'name': store_name, 'address': store_address, 'store_id': store_id}
-        store_dict.append(store_entry)
+        if html.unescape(store['NAME']) == store_name:
+            store_id = store['KEY']
+            print(f"Found {store['NAME']} @ ID {store['KEY']}")
 
-    for store in store_dict:
-        if store['name'] == store_name:
-            print(f"Found store ID: {store['store_id']}")
-            return store['store_id']
+    return store_id
 
 def find_sub_id(store_id, sub_name):
     """Find the product ID for the given sub name and store ID.
