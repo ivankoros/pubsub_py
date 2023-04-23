@@ -224,7 +224,7 @@ def default_action(body, session, user, *args):
 
         if len(today_sales) == 1:
             sub_sale_message += f"Looks like the {today_sales[0]['name'].lower().capitalize()} " \
-                                f"(${float(today_sales[0]['price']) + 1.50}) is on sale toady."
+                                f"(${float(today_sales[0]['price']) + 1.50}) is on sale today."
 
         elif len(today_sales) > 1:
             sub_list = [f"{sub['name'].lower().capitalize()} (${float(sub['price']) + 1.50})" for sub in today_sales]
