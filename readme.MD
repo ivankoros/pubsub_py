@@ -6,9 +6,9 @@ are locally known as "**Pubsubs**". I always order for pickup - it helps out the
 heading out the door. 
 
 #### The ordering process is a pain:
-- 10-stages
-- Deals hard to find and change daily
-- Requires a plethora of personal information each time, none of which is necessary <br>
+- 10 stages
+- Deals are hard to find and they change daily
+- Ordering requires a plethora of personal info, none of which is necessary <br>
   *Problems exacerbated on mobile*
 
 #### I made PubSub Py as a text platform to solve these problems:
