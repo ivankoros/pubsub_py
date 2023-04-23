@@ -197,13 +197,13 @@ def confirm_store_action(body, session, user):
             return 'default', messages
 
         else:
-            message = ["I didn't get that. You can give a number (1) or text confirmation (Yea, St. John's Town Center)",
-                       "You can also say 'redo' to search for a new location."]
+            message = [
+                "I didn't get that. You can give a number (1) or text confirmation (Yea, St. John's Town Center)",
+                "You can also say 'redo' to search for a new location."]
             return 'confirm_store', message
     else:
         message = ["Okay, let's try that again. Give me a location and I'll find the nearest stores."]
         return 'get_store_location', message
-
 
 
 def get_sale_action(body, session, *args):
@@ -224,16 +224,22 @@ def default_action(body, session, user, *args):
         # Check if there are any sales today and return the corresponding message
         today_sales = query_deals(user.selected_store['store_id'])
 
-        if today_sales:
-            message = ""
-            for i, sale in enumerate(today_sales):
-                message += f"{i + 1}. {sale['name']}\n" \
-                           f"    Price: ${float(sale['price']) + 1.50}\n"
-        else:
-            message = "I didn't find any deals. That is weird, there are always deals." \
-                      "This means I might've messed up."
+        sub_sale_message = ""
 
-        messages = ["Let's see what's on sale today!", message]
+        if len(today_sales) == 1:
+            sub_sale_message += f"Looks like the {today_sales[0]['name'].lower().capitalize()} " \
+                                f"(${float(today_sales[0]['price']) + 1.50}) is on sale toady."
+
+        elif len(today_sales) > 1:
+            sub_list = [f"{sub['name'].lower().capitalize()} (${float(sub['price']) + 1.50})" for sub in today_sales]
+            sub_sale_message += f"Looks like the {', '.join(sub_list[:-1])}, and {sub_list[-1]} are on sale today."
+
+
+        else:
+            sub_sale_message = "I didn't find any deals. That is weird, there are always deals." \
+                               "This means I might've messed up."
+
+        messages = ["Let's see what's on sale today!", sub_sale_message]
 
         return 'default', messages
 
@@ -243,61 +249,13 @@ def default_action(body, session, user, *args):
 
 def order_sub_action(body, session, user, *args):
     """
-    This is the main important ordering function. It's called when the user is in the 'order_sub'
-    state.
 
-    1. If the user says 'exit', then they are taken back to the default state.
-
-    2. If the user does not say exit, I treat the user's input as a potential sub name
-        they're trying to say, and use vectorized model string matching to compare it against
-        all the sub names in the database. If there is a match above the cutoff (set default at 70%),
-        then I return the name of the sub. Otherwise, I return 'No match found', and prompt the user
-        to try again.
-
-    3. If there is a match, I create a class with the order information
-        - I use the user's sandwich request for the sub name
-        - I randomly generate a first name, last name, phone number, and email for the order
-        - I use the user's preferred store name and address to select the store location from the
-            Publix website HTML in Selenium.
-        - I generate the date as today and the time with my custom function to find the soonest
-            available time Publix will have. This is described below with examples
-
-    4. I then pass this SubOrder class with all the order info needed into the order_sub function,
-        which automates the ordering with Selenium. However, this takes about 40 seconds to run,
-        so I use the threading module to run it in a separate thread.
-
-    5. Feedback of the user's confirmed order is returned to the user instantly after ordering.
-        Because I've passed the order_sub function into a separate thread, the user doesn't have
-        to wait for the order to be placed. All the order info that I would need to send to the
-        user is saved in the SubOrder class, so I can just return that info to the user with the
-        __str__ method set up in the class.
-
-
-    :param body: The user's text
-    :param session:  The database session (MySQL)
-    :param user:  The user's database entry
-    :param args:  Any other arguments
-    :return:  Order feedback message
     """
     if 'exit' in body:
-        return 'default', ["you said exit, you're now in the default sate. say 'order' to order a sub."]
+        return 'default', ["You asked to exit, you're now in the default sate. say 'order' to order a sub."]
 
     if vectorized_string_match(item_to_match=find_sub_match(body), match_possibilities_list=all_sandwiches):
 
-        """ What is nearest_interval_time()?
-
-            This is my custom function to get the nearest 30 minute interval 
-            with a five minute buffer. This is the time that the Publix will 
-            Schedule the order for.
-
-            This is not arbitrary, I figured out how the time for soonest order
-            possible is calculated by Publix and this is my implementation of it.
-
-            Examples:
-             - ordering at 12:02 PM will give a pickup time of 12:30 PM
-             - ordering at 12:06 PM will give a pickup time of 12:40 PM
-
-        """
         # If the user's input is determined to be a correct sandwich name, then order the sub
         store_dict = session.query(Users).filter(Users.phone_number == user.phone_number).first().selected_store
 
@@ -348,6 +306,11 @@ def order_sub_action(body, session, user, *args):
             f"The {random_sandwiches[0].lower()}, the {random_sandwiches[1].lower()}, and the {random_sandwiches[2].lower()}.",
             f"You can also say 'exit' to exit ordering"]
 
+
+def confirm_sub_order_action(body, session, user, *args):
+    pass
+
+
 custom_dict = {'Bread': 'Whole Wheat',
                'Cheese': 'Swiss',
                'Condiments': "Boar's Head Honey Mustard",
@@ -374,7 +337,7 @@ state_info = {
         'next_states': ['get_sale']
     },
     'confirm_store': {
-        'text_response': "nothing, replace this",
+        'text_response': "",
         'action': confirm_store_action,
         'next_states': ['get_sale']
     },
@@ -386,6 +349,11 @@ state_info = {
     'order_sub': {
         'text_response:': TextResponses().get_response("order_sub"),
         'action': order_sub_action,
+        'next_states': ['default, confirm sub']
+    },
+    'confirm_sub_order': {
+        'text_response:': "",
+        'action': confirm_sub_order_action,
         'next_states': ['default']
     },
     'default': {
