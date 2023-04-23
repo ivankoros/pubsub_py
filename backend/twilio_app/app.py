@@ -5,121 +5,100 @@ from backend.twilio_app.state_flow_mechanism import get_user, state_info
 
 app = Flask(__name__)
 
+class Action:
+    """
+    Initialize an Action instance.
 
-@app.route("/sms", methods=['GET', 'POST'])
-def incoming_sms():
-    # Initialize the database session
-    session = initialize_database()
-
-    """Initialize the user object
-    
-    If the user is new, create a new user object and add it to the database.
-    If the user is not new, get the user object from the database with their
-    info such as their preferred store location, name, and most importantly
-    state - 'get_name', 'get_store_location', or 'get_order', remebering
-    where the user left off.
-    
+    :param action: Function to be executed.
+    :param message: User's message (str).
+    :param session: Database session.
+    :param user: User instance.
+    :param kwargs: Additional keyword arguments for the action function.
     """
 
-    user = get_user(session)
-    print(f"user says: {request.values.get('Body', '')}")
+    def __init__(self, action, message, session, user, **kwargs):
+        self.action = action
+        self.message = message
+        self.session = session
+        self.user = user
+        self.kwargs = kwargs
 
-    """Use the state flow mechanism to determine the next steps:
-        - Determine the message to send back to the user.
-        - Identify the user's current state and the next possible states.
-        - Execute the appropriate action based on the user's message.
-        
-        The 'action' is a dynamic function that changes according to the user's state,
-        defined in state_flow_mechanism.py under the state_info dictionary. 
-        The action function takes three arguments: user's message, database session, and user object.
-        Arguments are passed using unpacking to accommodate functions with varying numbers of arguments.
-        
-        I define the arguments for the action function, taking:
-            - message: the user's message
-            - session: the database session
-            - user: the user object
-        
-        Then, I pass the arguments into the action functions, with 
-        a star in front of the arguments. This is called 'unpacking' and
-        it allows me to pass in the arguments as a list. I do this because
-        each action function may take a different number of arguments, and
-        this way I don't have to change the code for each action function if
-        I choose to add or remove arguments.
-        
-        Passing the arguments into he action we pull from the flow state mechanism
-        based off the user's state, it always returns 2 things: 
-            1. the state the user
-            2. should transition to and and the message to send back to them.
-        
-         - next_state, message = action(*args) 
-         - next_state: the state the user should transition to
-         - message: the message to send back to the user
-            
-        Example:
-        The user texts in for the firs time:
-        
-        1. Their state is initialized as 'start' from the get_user() function.
-        2. The action for the get_name state is pulled from the state_info dictionary.
-          The 'start' state corresponds to the 'start_action' function.
-          
-            action = state_info['start']['action'] -->
-            action = start_action()
-            
-        3.  The action function is called with the user's message, the database session,
-            and the user object. The start_action function uses its own logic to greet the
-            user and ask for their name. It returns the next state as the 'get_name' state
-            and the message as the greeting and name request. 
-            
-            next_state, message = action(*args) -->
-            next_state, message = start_action(message, session, user)
-        
-        4. The user's state is updated to the 'get_name' state in the database.
-        
-        5. The message object is set up with all the messages coming from the action
-           function, is returned to the Flask app through the Twiml Response object
-           through xml as a web response.
-           
-           I have wherever the Flask app is hosted as a webhook for the Twilio number
-           through the Twilio console, so my outputted responses first are sent to my
-           Flask app, which is being listened to by Twilio, and is then sent back to
-           the user.      
-        
-    """
-    action = state_info[user.state]['action']
+    def execute(self):
+        """
+        Execute the specified action function with the given arguments.
 
-    args = [request.values.get("Body", ""), session, user]
+        :return: Tuple containing the next state (str) and response message (str or list of str).
+        """
+        return self.action(self.message, self.session, self.user, **self.kwargs)
 
-    # Execute the action and update the user state
-    next_state, message = action(*args)
-    user.state = next_state
-    session.commit()
+    @classmethod
+    def process_user_input(cls, message, session, user):
+        """
+        Process user input and execute the corresponding action.
 
-    # Send the response message
-    resp = MessagingResponse()
+        :param user_state: User's current state (str).
+        :param message: User's message (str).
+        :param session: Database session.
+        :param user: User instance.
+        :return: Tuple containing the next state (str) and response message (str or list of str).
+        """
+        action_func = state_info[user.state]['action']
+        action = cls(action_func, message, session, user)
+        next_state, response_message = action.execute()
+        return next_state, response_message
+
+
+def reply_all_messages(messages_to_send, twilio_response_client):
     """Send all messages in the returned message list to the user.
-    
+
     I have to check if the message is a string or a list (else) because
     the outgoing message can either a string or a list depending on the action
     state function.
-    
-    1. If its a list, I need to iterate over it and send it as separate messages,
+
+    1. If it's a list, I need to iterate over it and send it as separate messages,
     which is the intended behavior.
-    
-    2. However, if its a string and I try to iterate over it, it'll try to send
+
+    2. However, if it's a string and I try to iterate over it, it'll try to send
        every character as a separate message because strings are iterables themselves.
     """
+    if isinstance(messages_to_send, str):
+        twilio_response_client.message(messages_to_send)
+    else:  # It's a list
+        for m in messages_to_send:
+            twilio_response_client.message(m)
 
-    def reply_all_messages(messages_to_send):
-        if isinstance(messages_to_send, str):
-            resp.message(messages_to_send)
-        else:  # It's a list
-            for m in messages_to_send:
-                resp.message(m)
 
-    print(f"Message back to user: {message}")
-    reply_all_messages(message)
+@app.route("/sms", methods=['GET', 'POST'])
+def handle_sms_request():
+    """
+    Handle SMS requests from Twilio and respond with the appropriate message.
 
-    return Response(str(resp), mimetype="application/xml")
+    This function processes incoming SMS messages, executes the corresponding
+    action based on the user's current state, and returns the response message.
+    """
+
+    session = initialize_database()
+    user = get_user(session)
+    message = request.values.get('Body', '')
+
+    print(f"user says: {request.values.get('Body', '')}")
+
+    # Process user input and execute the corresponding action
+    next_state, response_message = Action.process_user_input(message=message,
+                                                             session=session,
+                                                             user=user)
+    # Update the user's state in the database
+    user.state = next_state
+    session.commit()
+
+    print(f"Message back to user: {response_message}")
+
+    # Send the response message
+    twilio_response_client = MessagingResponse()
+    reply_all_messages(messages_to_send=response_message,
+                       twilio_response_client=twilio_response_client)
+
+    return Response(str(twilio_response_client), mimetype="application/xml")
 
 
 if __name__ == "__main__":
