@@ -3,14 +3,28 @@
 PubSub Py streamlines the Publix deli sub ordering process by leveraging natural language processing and web scraping 
 to empower users to discover local deals and place orders with a single text.
 
+---
 ### Legal Disclaimer:
-This project is an independent proof-of-concept application and is not affiliated with, endorsed by, or supported by Publix Super Markets, Inc. or its subsidiaries. It is solely intended for educational purposes and personal use, and is not intended for commercial use or to bypass any restrictions or policies set forth by Publix. The creator of this project does not claim any ownership over the Publix name, logo, or any proprietary information mentioned or used from Publix.com. PubSub Py may not comply with the Terms of Use and Privacy Policy of Publix.com, and the user assumes all risks and responsibility for any legal consequences that may arise due to the use of this application. The creator of this project is not responsible for any potential violations of Publix.com's Terms of Use, Privacy Policy, or any other legal agreements between the user and Publix. By using this application, you acknowledge and accept these risks and responsibilities, and agree to indemnify and hold harmless the creator of PubSub Py from any liability arising from your use of this application. The creator of this project is open to discussing any concerns with Publix to find a solution that complies with their policies.
+
+>This project is an independent proof-of-concept application and is not affiliated with, endorsed by, or supported by
+Publix Super Markets, Inc. or its subsidiaries. It is solely intended for educational purposes and personal use, and is 
+not intended for commercial use or to bypass any restrictions or policies set forth by Publix. The creator of this 
+project does not claim any ownership over the Publix name, logo, or any proprietary information mentioned or used from 
+Publix.com. PubSub Py may not comply with the Terms of Use and Privacy Policy of Publix.com, and the user assumes all 
+risks and responsibility for any legal consequences that may arise due to the use of this application. The creator of 
+this project is not responsible for any potential violations of Publix.com's Terms of Use, Privacy Policy, or any other 
+legal agreements between the user and Publix. By using this application, you acknowledge and accept these risks and 
+responsibilities, and agree to indemnify and hold harmless the creator of PubSub Py from any liability arising from 
+your use of this application. The creator of this project is open to discussing any concerns with Publix to find a 
+solution that complies with their policies.
+---
+## Introduction & Background
 
 Publix is a grocery chain in the Southeastern United States; their great sandwiches 
 are locally known as "**Pubsubs**". I always order for pickup - it helps out the workers (I would know) and it's convenient to do before
 heading out the door. 
 
-#### The ordering process is a pain:
+#### But, the ordering process is a pain:
 - 10 stages
 - Deals are hard to find and they change daily
 - Ordering requires a plethora of personal info, none of which is necessary <br>
@@ -28,8 +42,9 @@ heading out the door.
    > > "Great, your order for the Boar's Head Italian Sub is confirmed for pickup at St. John's Town Center at 1:50 PM
    > today. It'll be ready under the name Wump Flibbertigibbet."
  
-#### You can spell stuff wrong, use slang, forget to put a bread option - PubSub Py will understand you.
+### You can spell stuff wrong, use slang, forget to put a bread option - PubSub Py will understand you.
 
+---
 ## How does it work?
 - **Google Maps** API & GeoPy are used for rapid store location lookup 
 - The **Publix API** is used to query deals from your local Publix 
@@ -48,7 +63,20 @@ To ensure the functionality of both Twilio and Selenium components app component
 
 Follow these steps to run the tests:
 
-1. Ensure you are in the root directory of the project and have requirements installed
+1. Clone the repository
+   ```bash
+   git clone https://github.com/ivankoros/pubsub_py
+    ```
+
+1. Go to the project directory
+   ```bash
+   cd pubsub_py
+   ```
+   
+2. Install the dependencies
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 2. Run the tests
  - Twilio/Twilm Flask app tests:
