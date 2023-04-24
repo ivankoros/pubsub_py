@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 
 def clean_text(user_text_input):
-    nltk.download('stopwords')
+    #nltk.download('stopwords')
     text = user_text_input.lower()
 
     # Everything that isn't a letter or space is removed
@@ -25,7 +25,7 @@ def clean_text(user_text_input):
 
 
 def find_synonyms(word):
-    nltk.download('wordnet')
+    #nltk.download('wordnet')
     """Find synonyms of a word using WordNet
 
     This function is for identifying the meaning of the user's input,
